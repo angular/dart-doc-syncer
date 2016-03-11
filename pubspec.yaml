@@ -1,0 +1,9 @@
+name: dart-doc-syncer
+version: 0.0.0
+description: >
+  Updates a documentation repository for an angular.io Dart example based on
+  latest content of the raw content under public/docs/_examples in the main
+  angular.io repository.
+author: Thibault Sottiaux <thso@google.com>
+dependencies:
+  path: ^1.3.9
