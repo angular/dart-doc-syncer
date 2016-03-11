@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -7,14 +8,14 @@ final String defaultAssetsPath = p.join(basePath, "../default_assets");
 
 /// Generates a clean documentation application folder based on the raw content
 /// at [snaphsot].
-void assembleDocumentationExample(Directory snapshot, Directory out) {
+Future assembleDocumentationExample(Directory snapshot, Directory out) async {
   out.createSync(recursive: false);
 
   // Add default assets first.
-  Process.start('cp', ['-a', p.join(defaultAssetsPath, '.'), out.path]);
+  await Process.run('cp', ['-a', p.join(defaultAssetsPath, '.'), out.path]);
 
   // Add all files from snapshot folder.
-  Process.start('cp', ['-a', p.join(snapshot.path, '.'), out.path]);
+  await Process.run('cp', ['-a', p.join(snapshot.path, '.'), out.path]);
 }
 
 main() {

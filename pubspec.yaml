@@ -1,4 +1,4 @@
-name: dart-doc-syncer
+name: dart_doc_syncer
 version: 0.0.0
 description: >
   Updates a documentation repository for an angular.io Dart example based on
@@ -6,4 +6,5 @@ description: >
   angular.io repository.
 author: Thibault Sottiaux <thso@google.com>
 dependencies:
+  logging: ^0.11.2
   path: ^1.3.9
