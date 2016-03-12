@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:logging/logging.dart';
 import 'package:dart_doc_syncer/src/generate_doc.dart';
+import 'package:dart_doc_syncer/src/remove_doc_tags.dart';
 
 final logger = new Logger('update_doc_repo');
 
@@ -30,9 +31,9 @@ Future updateDocRepo(String examplePath, String outRepository) async {
     await assembleDocumentationExample(
         new Directory(exampleFolder), new Directory(outPath));
 
-    // --
-    // TODO: Everything is in place, rm angular.io doc comments + generate README.
-    // --
+    // Clean the application code
+    logger.fine('Cleaning files in $outRepository');
+    removeDocTagsFromApplication(exampleFolder);
 
     // Push the new content to [outRepository].
     logger.fine('Pushing generated example to $outRepository');
@@ -40,6 +41,21 @@ Future updateDocRepo(String examplePath, String outRepository) async {
   } finally {
     // Clean up .tmp folder
     await new Directory(p.join(basePath, '.tmp')).delete(recursive: true);
+  }
+}
+
+/// Rewrites all files under the [path] directory by filtering out the
+/// documentation tags.
+Future removeDocTagsFromApplication(String path) async {
+  final files =
+      new Directory(path).list(recursive: true).where((e) => e is File);
+  await for (final file in files) {
+    final content = await file.readAsString();
+    final cleanedContent = removeDocTags(content);
+
+    if (content == cleanedContent) continue;
+
+    await file.writeAsString(cleanedContent);
   }
 }
 
