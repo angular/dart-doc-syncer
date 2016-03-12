@@ -5,7 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:logging/logging.dart';
 
 import 'package:dart_doc_syncer/src/generate_doc.dart';
-import 'package:dart_doc_syncer/src/git_helpers.dart';
+import 'package:dart_doc_syncer/src/git_repository.dart';
 import 'package:dart_doc_syncer/src/remove_doc_tags.dart';
 
 final logger = new Logger('update_doc_repo');
