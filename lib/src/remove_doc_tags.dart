@@ -3,7 +3,7 @@ String removeDocTags(String code) =>
     code.split('\n').where(_isNotDocTagComment).join('\n');
 
 final _docTags = ['#docregion', '#enddocregion', '#docplaster'];
-final _commentPrefixes = ['//', '<--'];
+final _commentPrefixes = ['//', '<!--'];
 
 /// Returns true if [line] is a not a comment line with a doc tag.
 bool _isNotDocTagComment(String line) => !_isDocTagComment(line);

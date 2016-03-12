@@ -7,4 +7,6 @@ description: >
 author: Thibault Sottiaux <thso@google.com>
 dependencies:
   logging: ^0.11.2
-  path: ^1.3.9
+  path: '^1.2.0'
+dev_dependencies:
+  test: ^0.12.8
