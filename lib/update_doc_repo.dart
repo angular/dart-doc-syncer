@@ -13,7 +13,7 @@ final logger = new Logger('update_doc_repo');
 final String basePath = p.dirname(Platform.script.path);
 const String angularRepositoryUri = 'https://github.com/angular/angular.io';
 
-/// Updates [outRepository] based on the content of the example under
+/// Updates [outRepositoryUri] based on the content of the example under
 /// [examplePath] in the angular.io repository.
 Future updateDocRepo(String examplePath, String outRepositoryUri) async {
   try {
@@ -63,16 +63,4 @@ Future removeDocTagsFromApplication(String path) async {
 
     await file.writeAsString(cleanedContent);
   }
-}
-
-main() async {
-  Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((LogRecord rec) {
-    print('${rec.level.name}: ${rec.time}: ${rec.message}');
-  });
-
-  await updateDocRepo('public/docs/_examples/template-syntax/dart',
-      'https://github.com/thso/dart-doc-syncer-test');
-
-  print('Done!');
 }
