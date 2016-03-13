@@ -31,7 +31,7 @@ class GitRepository {
         () => Process.run('git', ['add', '.'], workingDirectory: directory));
 
     _logger.fine('Comitting changes for $directory.');
-    await _assertSuccess(() => Process.run('git', ['commit', '-m' '"$message"'],
+    await _assertSuccess(() => Process.run('git', ['commit', '-m', message],
         workingDirectory: directory));
 
     _logger.fine('Pushing changes for $directory.');

@@ -37,7 +37,7 @@ Future updateDocRepo(String examplePath, String outRepositoryUri) async {
 
     // Clean the application code
     logger.fine('Cleaning files in $outRepository');
-    removeDocTagsFromApplication(exampleFolder);
+    await removeDocTagsFromApplication(outPath);
 
     // Push the new content to [outRepository].
     logger.fine('Pushing generated example to $outRepositoryUri');
@@ -53,7 +53,9 @@ Future updateDocRepo(String examplePath, String outRepositoryUri) async {
 Future removeDocTagsFromApplication(String path) async {
   final files =
       new Directory(path).list(recursive: true).where((e) => e is File);
-  await for (final file in files) {
+  await for (File file in files) {
+    if (!file.path.endsWith('.html') && !file.path.endsWith('.dart')) continue;
+
     final content = await file.readAsString();
     final cleanedContent = removeDocTags(content);
 
