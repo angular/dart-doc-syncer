@@ -8,14 +8,15 @@ import 'package:dart_doc_syncer/src/generate_doc.dart';
 import 'package:dart_doc_syncer/src/git_repository.dart';
 import 'package:dart_doc_syncer/src/remove_doc_tags.dart';
 
-final logger = new Logger('update_doc_repo');
+final Logger logger = new Logger('update_doc_repo');
 
 final String basePath = p.dirname(Platform.script.path);
 const String angularRepositoryUri = 'https://github.com/angular/angular.io';
 
 /// Updates [outRepositoryUri] based on the content of the example under
 /// [examplePath] in the angular.io repository.
-Future updateDocRepo(String examplePath, String outRepositoryUri) async {
+Future updateDocRepo(String examplePath, String outRepositoryUri,
+    {bool push: true, bool clean: true, String commitMessage: "Sync"}) async {
   try {
     // Clone content of angular repo into tmp folder.
     final tmpAngularPath = p.join(basePath, '.tmp/angular_io');
@@ -36,15 +37,21 @@ Future updateDocRepo(String examplePath, String outRepositoryUri) async {
         new Directory(exampleFolder), new Directory(outPath));
 
     // Clean the application code
-    logger.fine('Cleaning files in $outRepository');
+    logger.fine('Removing doc tags in $outRepositoryUri files.');
     await removeDocTagsFromApplication(outPath);
 
-    // Push the new content to [outRepository].
-    logger.fine('Pushing generated example to $outRepositoryUri');
-    await outRepository.pushContent(message: "Update...");
+    if (push) {
+      // Push the new content to [outRepository].
+      logger.fine('Pushing generated example to $outRepositoryUri.');
+      await outRepository.pushContent(message: commitMessage);
+    }
+  } on GitException catch (e) {
+    logger.severe(e.message);
   } finally {
-    // Clean up .tmp folder
-    await new Directory(p.join(basePath, '.tmp')).delete(recursive: true);
+    if (clean) {
+      // Clean up .tmp folder
+      await new Directory(p.join(basePath, '.tmp')).delete(recursive: true);
+    }
   }
 }
 

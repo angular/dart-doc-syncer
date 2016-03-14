@@ -40,8 +40,17 @@ class GitRepository {
   }
 }
 
+class GitException implements Exception {
+  final String message;
+
+  GitException(this.message);
+}
+
 /// Throws if the exitCode returned by [gitCommand] is not 0.
-Future _assertSuccess(Future gitCommand()) async {
+Future _assertSuccess(Future<ProcessResult> gitCommand()) async {
   final r = await gitCommand();
-  if (r.exitCode != 0) throw r.stderr;
+  if (r.exitCode != 0) {
+    final message = r.stderr.isEmpty ? r.stdout : r.stderr;
+    throw new GitException(message);
+  }
 }
