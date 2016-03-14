@@ -6,12 +6,11 @@ import 'package:logging/logging.dart';
 
 import 'package:dart_doc_syncer/src/generate_doc.dart';
 import 'package:dart_doc_syncer/src/git_repository.dart';
-import 'package:dart_doc_syncer/src/remove_doc_tags.dart';
 
-final Logger logger = new Logger('update_doc_repo');
+final Logger _logger = new Logger('update_doc_repo');
 
-final String basePath = p.dirname(Platform.script.path);
-const String angularRepositoryUri = 'https://github.com/angular/angular.io';
+final String _basePath = p.dirname(Platform.script.path);
+const String _angularRepositoryUri = 'https://github.com/angular/angular.io';
 
 /// Updates [outRepositoryUri] based on the content of the example under
 /// [examplePath] in the angular.io repository.
@@ -19,55 +18,34 @@ Future updateDocRepo(String examplePath, String outRepositoryUri,
     {bool push: true, bool clean: true, String commitMessage: "Sync"}) async {
   try {
     // Clone content of angular repo into tmp folder.
-    final tmpAngularPath = p.join(basePath, '.tmp/angular_io');
+    final tmpAngularPath = p.join(_basePath, '.tmp/angular_io');
     final angularRepository = new GitRepository(tmpAngularPath);
-    await angularRepository.cloneFrom(angularRepositoryUri);
+    await angularRepository.cloneFrom(_angularRepositoryUri);
 
     // Clone [outRepository] into tmp folder.
-    final outPath = p.join(basePath, '.tmp/example_out');
+    final outPath = p.join(_basePath, '.tmp/example_out');
     final outRepository = new GitRepository(outPath);
     await outRepository.cloneFrom(outRepositoryUri);
 
     // Remove existing content as we will generate an updated version.
     await outRepository.deleteAll();
 
-    logger.fine('Generating updated example application into $outPath.');
+    _logger.fine('Generating updated example application into $outPath.');
     final exampleFolder = p.join(tmpAngularPath, examplePath);
     await assembleDocumentationExample(
         new Directory(exampleFolder), new Directory(outPath));
 
-    // Clean the application code
-    logger.fine('Removing doc tags in $outRepositoryUri files.');
-    await removeDocTagsFromApplication(outPath);
-
     if (push) {
       // Push the new content to [outRepository].
-      logger.fine('Pushing generated example to $outRepositoryUri.');
+      _logger.fine('Pushing generated example to $outRepositoryUri.');
       await outRepository.pushContent(message: commitMessage);
     }
   } on GitException catch (e) {
-    logger.severe(e.message);
+    _logger.severe(e.message);
   } finally {
     if (clean) {
       // Clean up .tmp folder
-      await new Directory(p.join(basePath, '.tmp')).delete(recursive: true);
+      await new Directory(p.join(_basePath, '.tmp')).delete(recursive: true);
     }
-  }
-}
-
-/// Rewrites all files under the [path] directory by filtering out the
-/// documentation tags.
-Future removeDocTagsFromApplication(String path) async {
-  final files =
-      new Directory(path).list(recursive: true).where((e) => e is File);
-  await for (File file in files) {
-    if (!file.path.endsWith('.html') && !file.path.endsWith('.dart')) continue;
-
-    final content = await file.readAsString();
-    final cleanedContent = removeDocTags(content);
-
-    if (content == cleanedContent) continue;
-
-    await file.writeAsString(cleanedContent);
   }
 }
