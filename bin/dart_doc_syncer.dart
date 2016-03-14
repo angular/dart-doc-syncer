@@ -18,4 +18,5 @@ Future main(List<String> args) async {
   final repository = args[1];
 
   await updateDocRepo(path, repository);
+  print('Done updating $repository');
 }

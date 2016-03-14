@@ -19,8 +19,8 @@ class GitRepository {
 
   /// Deletes all files in this git [directory].
   Future deleteAll() async {
-    _logger.fine('Deleting all repository content.');
-    await Process.run('git', ['rm', '*'], workingDirectory: directory);
+    _logger.fine('Deleting all the repository content.');
+    await Process.run('git', ['rm', '"*"'], workingDirectory: directory);
   }
 
   /// Stages, commits with [message] and pushes local changes to origin for
