@@ -4,7 +4,7 @@ import 'package:logging/logging.dart';
 
 import 'package:dart_doc_syncer/update_doc_repo.dart';
 
-/// Sync an example application living in the angular.io repository to a
+/// Syncs an example application living in the angular.io repository to a
 /// dedicated repository that will contain a generated cleaned-up version.
 ///
 ///     dart_doc_syncer <examplePath> <exampleRepository>
@@ -17,6 +17,8 @@ Future main(List<String> args) async {
   final path = args[0];
   final repository = args[1];
 
-  await updateDocRepo(path, repository);
+  final documentation = new DocumentationUpdater();
+  await documentation.updateRepository(path, repository);
+
   print('Done updating $repository');
 }

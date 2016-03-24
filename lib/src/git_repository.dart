@@ -3,6 +3,10 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 
+class GitRepositoryFactory {
+  GitRepository create(String directory) => new GitRepository(directory);
+}
+
 class GitRepository {
   final _logger = new Logger('GitRepository');
 
