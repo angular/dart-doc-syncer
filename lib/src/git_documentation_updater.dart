@@ -38,7 +38,8 @@ class GitDocumentationUpdater implements DocumentationUpdater {
       _logger.fine('Generating updated example application into $outPath.');
       final exampleFolder = p.join(angularRepository.directory, examplePath);
       await assembleDocumentationExample(
-          new Directory(exampleFolder), new Directory(outRepository.directory));
+          new Directory(exampleFolder), new Directory(outRepository.directory),
+          angularIoPath: examplePath);
 
       if (push) {
         // Push the new content to [outRepository].

@@ -14,7 +14,8 @@ final String _defaultAssetsPath = p.join(_basePath, "../default_assets");
 
 /// Generates a clean documentation application folder based on the raw content
 /// at [snaphsot].
-Future assembleDocumentationExample(Directory snapshot, Directory out) async {
+Future assembleDocumentationExample(Directory snapshot, Directory out,
+    {String angularIoPath}) async {
   out.createSync(recursive: false);
 
   // Add default assets first.
@@ -28,7 +29,7 @@ Future assembleDocumentationExample(Directory snapshot, Directory out) async {
   await _removeDocTagsFromApplication(out.path);
 
   // Generate a README file
-  generateReadme(out.path);
+  generateReadme(out.path, angularIoPath: angularIoPath);
 }
 
 /// Rewrites all files under the [path] directory by filtering out the

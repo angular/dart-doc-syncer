@@ -5,27 +5,31 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 /// Generates a README file for the example at [path].
-Future generateReadme(String path) async {
-  final syncData = new File(p.join(path, '.docsync.json'));
-  final dataExists = await syncData.exists();
+Future generateReadme(String path, {String angularIoPath}) async {
+  final syncDataFile = new File(p.join(path, '.docsync.json'));
+  final dataExists = await syncDataFile.exists();
 
-  if (dataExists) {
-    await _generateSpecificReadme(path, await syncData.readAsStringSync());
-    await syncData.delete();
-  } else {
-    await _generateGenericReadme(path);
-  }
+  final syncData = dataExists
+      ? new SyncData.fromJson(await syncDataFile.readAsStringSync())
+      : new SyncData(
+          name: angularIoPath,
+          docLink: 'http://www.github.com/angular.io/' + angularIoPath);
+
+  await _generateReadme(path, syncData);
+  await syncDataFile.delete();
 }
 
-/// Generates a README file for the example at [path] based on the json map
-/// [syncData].
-Future _generateSpecificReadme(String path, String syncDataJson) async {
-  final syncData = new SyncData.fromJson(syncDataJson);
-
+/// Generates a README file for the example at [path] based on [syncData].
+Future _generateReadme(String path, SyncData syncData) async {
   final linkSection = 'See also:\n' +
       syncData.links.map((String link) {
         return '- $link';
       }).join('\n');
+
+  final liveExampleSection = syncData.liveExampleLink == null
+      ? 'To run your own copy:\n'
+      : 'You can run a [hosted copy](${syncData.liveExampleLink}) of this'
+      'sample. Or run your own copy:\n';
 
   final readmeContent = '''
 ${syncData.name}
@@ -33,7 +37,7 @@ ${syncData.name}
 
 Welcome to the example application used in angular.io/dart's [${syncData.name}](${syncData.docLink}) page.
 
-You can run a [hosted copy](${syncData.liveExampleLink}) of this sample. Or run your own copy:
+$liveExampleSection
 - Clone this repo.
 - Download the dependencies.
     ```
@@ -53,11 +57,6 @@ $linkSection
   await readmeFile.writeAsStringSync(readmeContent);
 }
 
-/// Generates a generic README file for the example at [path].
-Future _generateGenericReadme(String path) async {
-  // TODO(thso): Provide backup README if no '.docsync' file is present.
-}
-
 /// Holds metadata about the example application that is used to generate a
 /// README file.
 class SyncData {
@@ -67,7 +66,7 @@ class SyncData {
   final String liveExampleLink;
   final List<String> links;
 
-  SyncData._(
+  SyncData(
       {this.name,
       this.docLink,
       this.repoLink,
@@ -76,7 +75,7 @@ class SyncData {
 
   factory SyncData.fromJson(String json) {
     final data = JSON.decode(json);
-    return new SyncData._(
+    return new SyncData(
         name: data['name'],
         docLink: data['docLink'],
         repoLink: data['repoLink'],
