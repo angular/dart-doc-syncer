@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:dart_doc_syncer/src/generate_readme.dart';
 import 'package:dart_doc_syncer/src/remove_doc_tags.dart';
 
 final Logger _logger = new Logger('update_doc_repo');
@@ -25,6 +26,9 @@ Future assembleDocumentationExample(Directory snapshot, Directory out) async {
   // Clean the application code
   _logger.fine('Removing doc tags in $out.path.');
   await _removeDocTagsFromApplication(out.path);
+
+  // Generate a README file
+  generateReadme(out.path);
 }
 
 /// Rewrites all files under the [path] directory by filtering out the
