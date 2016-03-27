@@ -30,16 +30,21 @@ Future assembleDocumentationExample(Directory snapshot, Directory out) async {
 /// Rewrites all files under the [path] directory by filtering out the
 /// documentation tags.
 Future _removeDocTagsFromApplication(String path) async {
-  final files =
-      new Directory(path).list(recursive: true).where((e) => e is File);
-  await for (File file in files) {
-    if (!file.path.endsWith('.html') && !file.path.endsWith('.dart')) continue;
+  final files = await new Directory(path)
+      .list(recursive: true)
+      .where((e) => e is File)
+      .toList();
+  return Future.wait(files.map(_removeDocTagsFromFile));
+}
 
-    final content = await file.readAsString();
-    final cleanedContent = removeDocTags(content);
+/// Rewrites the [file] by filtering out the documentation tags.
+Future _removeDocTagsFromFile(File file) async {
+  if (!file.path.endsWith('.html') && !file.path.endsWith('.dart')) return null;
 
-    if (content == cleanedContent) continue;
+  final content = await file.readAsString();
+  final cleanedContent = removeDocTags(content);
 
-    await file.writeAsString(cleanedContent);
-  }
+  if (content == cleanedContent) return null;
+
+  return file.writeAsString(cleanedContent);
 }
