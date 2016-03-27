@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 
-import 'package:dart_doc_syncer/update_doc_repo.dart';
+import 'package:dart_doc_syncer/documentation_updater.dart';
 
 /// Syncs an example application living in the angular.io repository to a
 /// dedicated repository that will contain a generated cleaned-up version.
