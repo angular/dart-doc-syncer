@@ -10,7 +10,8 @@ Future generateReadme(String path, {String angularIoPath}) async {
   final dataExists = await syncDataFile.exists();
 
   final syncData = dataExists
-      ? new SyncData.fromJson(await syncDataFile.readAsStringSync())
+      ? new SyncData.fromJson(await syncDataFile.readAsStringSync(),
+          path: angularIoPath)
       : new SyncData(
           name: angularIoPath,
           docLink: '//github.com/angular/angular.io/' + angularIoPath);
@@ -28,29 +29,29 @@ Future _generateReadme(String path, SyncData syncData) async {
             return '- $link';
           }).join('\n');
 
-  final liveExampleSection = syncData.liveExampleLink == null
+  final liveExampleSection = syncData.liveExampleHref == null
       ? 'To run your own copy:\n'
-      : 'You can run a [hosted copy](${syncData.liveExampleLink}) of this'
+      : 'You can run a [hosted copy](${syncData.liveExampleHref}) of this'
       'sample. Or run your own copy:\n';
 
   final readmeContent = '''
 ${syncData.name}
 ---------------
 
-Welcome to the example application used in angular.io/dart's [${syncData.name}](${syncData.docLink}) page.
+Welcome to the example application used in angular.io/dart's
+[${syncData.name}](${syncData.repoHref}) page.
 
 $liveExampleSection
 - Clone this repo.
-- Download the dependencies.
-    ```
-    pub get
-    ```
-- Launch a development server.
-    ```
-    pub serve
-    ```
-- Open a browser to `http://localhost:8080`.
-  In Dartium, you'll see the app right away. In other modern browsers, you'll have to wait a bit while pub converts the app.
+- Download the dependencies:
+
+  `pub get`
+- Launch a development server:
+
+  `pub serve`
+- Open a browser to `http://localhost:8080`.<br/>
+  In Dartium, you'll see the app right away. In other modern browsers,
+  you'll have to wait a bit while pub converts the app.
 
 $linkSection
 ''';
@@ -63,25 +64,19 @@ $linkSection
 /// README file.
 class SyncData {
   final String name;
-  final String docLink;
-  final String repoLink;
-  final String liveExampleLink;
+  final String repoHref;
+  final String liveExampleHref;
   final List<String> links;
 
   SyncData(
-      {this.name,
-      this.docLink,
-      this.repoLink,
-      this.liveExampleLink,
-      this.links: const []});
+      {this.name, this.repoHref, this.liveExampleHref, this.links: const []});
 
-  factory SyncData.fromJson(String json) {
+  factory SyncData.fromJson(String json, {String path}) {
     final data = JSON.decode(json);
     return new SyncData(
         name: data['name'],
-        docLink: data['docLink'],
-        repoLink: data['repoLink'],
-        liveExampleLink: data['liveExampleLink'],
+        repoHref: data['repoHref'] ?? '//github.com/angular/angular.io/' + path,
+        liveExampleHref: data['liveExampleLink'],
         links: data['links']);
   }
 }
