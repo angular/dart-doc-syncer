@@ -12,9 +12,7 @@ Future generateReadme(String path, {String angularIoPath}) async {
   final syncData = dataExists
       ? new SyncData.fromJson(await syncDataFile.readAsStringSync(),
           path: angularIoPath)
-      : new SyncData(
-          name: angularIoPath,
-          docLink: '//github.com/angular/angular.io/' + angularIoPath);
+      : new SyncData(name: angularIoPath);
 
   await _generateReadme(path, syncData);
   if (dataExists) await syncDataFile.delete();
@@ -69,14 +67,21 @@ class SyncData {
   final List<String> links;
 
   SyncData(
-      {this.name, this.repoHref, this.liveExampleHref, this.links: const []});
+      {this.name,
+      this.liveExampleHref,
+      this.links: const [],
+      String repoHref,
+      String path})
+      : this.repoHref =
+            repoHref + '//github.com/angular/angular.io/tree/master' + path;
 
   factory SyncData.fromJson(String json, {String path}) {
     final data = JSON.decode(json);
     return new SyncData(
         name: data['name'],
-        repoHref: data['repoHref'] ?? '//github.com/angular/angular.io/' + path,
+        repoHref: data['repoHref'],
         liveExampleHref: data['liveExampleHref'],
-        links: data['links'] ?? []);
+        links: data['links'] ?? [],
+        path: path);
   }
 }
