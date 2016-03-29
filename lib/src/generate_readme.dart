@@ -13,18 +13,20 @@ Future generateReadme(String path, {String angularIoPath}) async {
       ? new SyncData.fromJson(await syncDataFile.readAsStringSync())
       : new SyncData(
           name: angularIoPath,
-          docLink: 'http://www.github.com/angular.io/' + angularIoPath);
+          docLink: '//github.com/angular/angular.io/' + angularIoPath);
 
   await _generateReadme(path, syncData);
-  await syncDataFile.delete();
+  if (dataExists) await syncDataFile.delete();
 }
 
 /// Generates a README file for the example at [path] based on [syncData].
 Future _generateReadme(String path, SyncData syncData) async {
-  final linkSection = 'See also:\n' +
-      syncData.links.map((String link) {
-        return '- $link';
-      }).join('\n');
+  final linkSection = syncData.links.isEmpty
+      ? ''
+      : 'See also:\n' +
+          syncData.links.map((String link) {
+            return '- $link';
+          }).join('\n');
 
   final liveExampleSection = syncData.liveExampleLink == null
       ? 'To run your own copy:\n'
@@ -71,7 +73,7 @@ class SyncData {
       this.docLink,
       this.repoLink,
       this.liveExampleLink,
-      this.links});
+      this.links: const []});
 
   factory SyncData.fromJson(String json) {
     final data = JSON.decode(json);
