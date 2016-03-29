@@ -77,6 +77,6 @@ class SyncData {
         name: data['name'],
         repoHref: data['repoHref'] ?? '//github.com/angular/angular.io/' + path,
         liveExampleHref: data['liveExampleHref'],
-        links: data['links']);
+        links: data['links'] ?? []);
   }
 }

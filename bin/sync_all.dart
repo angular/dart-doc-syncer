@@ -5,7 +5,7 @@ import 'dart_doc_syncer.dart' as syncer;
 final examplesToSync = <List<String>>[
   <String>[
     'public/docs/_examples/template-syntax/dart',
-    'https://github.com/thso/dart-doc-syncer-test'
+    'https://github.com/angular-examples/template-syntax'
   ]
 ];
 
