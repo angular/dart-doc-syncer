@@ -40,14 +40,14 @@ Welcome to the example application used in angular.io/dart's
 [${syncData.name}](${syncData.docHref ?? syncData.repoHref}) page.
 
 $liveExampleSection
-- Clone this repo.
-- Download the dependencies:
+1. Clone this repo.
+2. Download the dependencies:
 
   `pub get`
-- Launch a development server:
+3. Launch a development server:
 
   `pub serve`
-- Open a browser to `http://localhost:8080`.<br/>
+4. Open a browser to `http://localhost:8080`.<br/>
   In Dartium, you'll see the app right away. In other modern browsers,
   you'll have to wait a bit while pub converts the app.
 
