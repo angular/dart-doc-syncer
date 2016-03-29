@@ -37,7 +37,7 @@ ${syncData.name}
 ---------------
 
 Welcome to the example application used in angular.io/dart's
-[${syncData.name}](${syncData.repoHref}) page.
+[${syncData.name}](${syncData.docHref ?? syncData.repoHref}) page.
 
 $liveExampleSection
 - Clone this repo.
@@ -62,23 +62,26 @@ $linkSection
 /// README file.
 class SyncData {
   final String name;
+  final String docHref;
   final String repoHref;
   final String liveExampleHref;
   final List<String> links;
 
   SyncData(
       {this.name,
+      this.docHref,
       this.liveExampleHref,
       this.links: const [],
       String repoHref,
       String path})
       : this.repoHref =
-            repoHref + '//github.com/angular/angular.io/tree/master' + path;
+            repoHref ?? '//github.com/angular/angular.io/tree/master/' + path;
 
   factory SyncData.fromJson(String json, {String path}) {
     final data = JSON.decode(json);
     return new SyncData(
         name: data['name'],
+        docHref: data['docHref'],
         repoHref: data['repoHref'],
         liveExampleHref: data['liveExampleHref'],
         links: data['links'] ?? [],
