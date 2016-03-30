@@ -60,7 +60,6 @@ $linkSection
 [dart-doc-syncer](//github.com/angular/dart-doc-syncer) tool.
 If you find a problem with this sample's code, please open an
 [issue at angular/angular.io](https://github.com/angular/angular.io/issues/new).
-Any issues opened here will be automatically closed.
 ''';
 
   final readmeFile = new File(p.join(path, 'README.md'));
