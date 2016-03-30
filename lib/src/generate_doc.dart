@@ -44,7 +44,8 @@ Future _removeDocTagsFromApplication(String path) async {
 
 /// Rewrites the [file] by filtering out the documentation tags.
 Future _removeDocTagsFromFile(File file) async {
-  if (!file.path.endsWith('.html') && !file.path.endsWith('.dart')) return null;
+  const whitelist = const ['.html', '.dart', '.yaml'];
+  if (whitelist.every((String e) => !file.path.endsWith(e))) return null;
 
   final content = await file.readAsString();
   final cleanedContent = removeDocTags(content);
