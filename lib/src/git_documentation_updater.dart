@@ -39,6 +39,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
       final exampleFolder = p.join(angularRepository.directory, examplePath);
       await assembleDocumentationExample(
           new Directory(exampleFolder), new Directory(outRepository.directory),
+          angularDirectory: new Directory(angularRepository.directory),
           angularIoPath: examplePath);
 
       if (push) {

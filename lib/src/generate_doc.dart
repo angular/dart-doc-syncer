@@ -15,7 +15,7 @@ final String _defaultAssetsPath = p.join(_basePath, "../default_assets");
 /// Generates a clean documentation application folder based on the raw content
 /// at [snaphsot].
 Future assembleDocumentationExample(Directory snapshot, Directory out,
-    {String angularIoPath}) async {
+    {Directory angularDirectory, String angularIoPath}) async {
   out.createSync(recursive: false);
 
   // Add default assets first.
@@ -23,6 +23,12 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
 
   // Add all files from snapshot folder.
   await Process.run('cp', ['-a', p.join(snapshot.path, '.'), out.path]);
+
+  // Add the common styles file.
+  await Process.run('cp', [
+    p.join(angularDirectory.path, 'public/docs/_examples/styles.css'),
+    p.join(out.path, 'web/styles.css')
+  ]);
 
   // Clean the application code
   _logger.fine('Removing doc tags in $out.path.');
