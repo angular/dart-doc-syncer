@@ -33,7 +33,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
 
       // Clone [outRepository] into tmp folder.
       final exampleName = p.basename(p.dirname(examplePath));
-      final outPath = p.join(_basePath, '.tmp/${exampleName}_gen');
+      final outPath = p.join(_basePath, '.tmp/${exampleName}');
       final outRepository = _gitFactory.create(outPath);
       await outRepository.cloneFrom(outRepositoryUri);
 

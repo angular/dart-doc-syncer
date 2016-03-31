@@ -12,7 +12,7 @@ Future generateReadme(String path, {String angularIoPath}) async {
   final syncData = dataExists
       ? new SyncData.fromJson(await syncDataFile.readAsStringSync(),
           path: angularIoPath)
-      : new SyncData(name: p.basename(p.dirname(path)), path: angularIoPath);
+      : new SyncData(name: p.basename(path), path: angularIoPath);
 
   await _generateReadme(path, syncData);
   if (dataExists) await syncDataFile.delete();
