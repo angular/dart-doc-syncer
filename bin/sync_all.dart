@@ -1,13 +1,20 @@
 import 'dart:async';
 
 import 'package:dart_doc_syncer/documentation_updater.dart';
+import 'package:logging/logging.dart';
 
 /// Syncs all angular.io example applications.
 Future main() async {
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('${rec.level.name}: ${rec.time}: ${rec.message}');
+  });
+
   for (List<String> example in _examplesToSync) {
     try {
       final documentation = new DocumentationUpdater();
-      await documentation.updateRepository(example[0], example[1]);
+      await documentation.updateRepository(example[0], example[1],
+          clean: _examplesToSync.last == example);
     } catch (e, stacktrace) {
       print('Error: $e, \nCause: $stacktrace');
     }

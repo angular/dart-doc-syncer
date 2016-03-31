@@ -25,10 +25,15 @@ class GitDocumentationUpdater implements DocumentationUpdater {
       // Clone content of angular repo into tmp folder.
       final tmpAngularPath = p.join(_basePath, '.tmp/angular_io');
       final angularRepository = _gitFactory.create(tmpAngularPath);
-      await angularRepository.cloneFrom(_angularRepositoryUri);
+
+      // Only clone into the repository if the directory is not already there.
+      if (!new Directory(angularRepository.directory).existsSync()) {
+        await angularRepository.cloneFrom(_angularRepositoryUri);
+      }
 
       // Clone [outRepository] into tmp folder.
-      final outPath = p.join(_basePath, '.tmp/example_out');
+      final exampleName = p.basename(p.dirname(examplePath));
+      final outPath = p.join(_basePath, '.tmp/${exampleName}_gen');
       final outRepository = _gitFactory.create(outPath);
       await outRepository.cloneFrom(outRepositoryUri);
 
