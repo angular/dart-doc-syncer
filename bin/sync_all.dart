@@ -1,17 +1,58 @@
 import 'dart:async';
 
-import 'dart_doc_syncer.dart' as syncer;
+import 'package:dart_doc_syncer/documentation_updater.dart';
 
-final examplesToSync = <List<String>>[
+/// Syncs all angular.io example applications.
+Future main() async {
+  for (List<String> example in _examplesToSync) {
+    try {
+      final documentation = new DocumentationUpdater();
+      await documentation.updateRepository(example[0], example[1]);
+    } catch (e, stacktrace) {
+      print('Error: $e, \nCause: $stacktrace');
+    }
+  }
+}
+
+final _examplesToSync = <List<String>>[
   <String>[
     'public/docs/_examples/template-syntax/dart',
     'git@github.com:angular-examples/template-syntax.git'
-  ]
+  ],
+  <String>[
+    'public/docs/_examples/pipes/dart',
+    'git@github.com:angular-examples/pipes.git'
+  ],
+  <String>[
+    'public/docs/_examples/server-communication/dart',
+    'git@github.com:angular-examples/server-communication.git'
+  ],
+  <String>[
+    'public/docs/_examples/quickstart/dart',
+    'git@github.com:angular-examples/quickstart.git'
+  ],
+  <String>[
+    'public/docs/_examples/displaying-data/dart',
+    'git@github.com:angular-examples/displaying-data.git'
+  ],
+  <String>[
+    'public/docs/_examples/forms/dart',
+    'git@github.com:angular-examples/forms.git'
+  ],
+  <String>[
+    'public/docs/_examples/hierarchical-dependency-injection/dart',
+    'git@github.com:angular-examples/hierarchical-dependency-injection.git'
+  ],
+  <String>[
+    'public/docs/_examples/dependency-injection/dart',
+    'git@github.com:angular-examples/dependency-injection.git'
+  ],
+  <String>[
+    'public/docs/_examples/attribute-directives/dart',
+    'git@github.com:angular-examples/attribute-directives.git'
+  ],
+  <String>[
+    'public/docs/_examples/architecture/dart',
+    'git@github.com:angular-examples/architecture.git'
+  ],
 ];
-
-/// Syncs all angular.io example applications.
-Future main(List<String> args) async {
-  for (List<String> example in examplesToSync) {
-    await syncer.main(example..addAll(args));
-  }
-}
