@@ -48,8 +48,13 @@ class GitDocumentationUpdater implements DocumentationUpdater {
           angularDirectory: new Directory(angularRepository.directory),
           angularIoPath: examplePath);
 
-      await _updateMaster(outRepository, commitMessage, push);
-      await _updateGhPages(outRepository, exampleName, push);
+      try {
+        await _updateMaster(outRepository, commitMessage, push);
+      } catch (_) {}
+
+      try {
+        await _updateGhPages(outRepository, exampleName, push);
+      } catch (_) {}
     } on GitException catch (e) {
       _logger.severe(e.message);
     } finally {
