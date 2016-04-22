@@ -21,9 +21,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
 
   @override
   Future updateRepository(String examplePath, String outRepositoryUri,
-      {bool push: true,
-      bool clean: false,
-      String commitMessage: "Sync"}) async {
+      {bool push: true, bool clean: true, String commitMessage: "Sync"}) async {
     try {
       // Clone content of angular repo into tmp folder.
       final tmpAngularPath = p.join(_basePath, '.tmp/angular_io');
