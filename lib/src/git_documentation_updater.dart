@@ -63,7 +63,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
   /// Updates the master branch with the latest cleaned example application
   /// code.
   Future _updateMaster(GitRepository repo, String message, bool push) async {
-    repo.updateMaster(message: message);
+    await repo.updateMaster(message: message);
 
     if (push) {
       // Push the new content to [outRepository].
