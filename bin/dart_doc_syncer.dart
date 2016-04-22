@@ -9,7 +9,7 @@ import 'package:dart_doc_syncer/documentation_updater.dart';
 ///
 ///     dart_doc_syncer <examplePath> <exampleRepository>
 Future main(List<String> args) async {
-  Logger.root.level = Level.ALL;
+  Logger.root.level = Level.WARNING;
   Logger.root.onRecord.listen((LogRecord rec) {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });

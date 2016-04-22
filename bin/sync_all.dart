@@ -5,7 +5,7 @@ import 'package:logging/logging.dart';
 
 /// Syncs all angular.io example applications.
 Future main() async {
-  Logger.root.level = Level.ALL;
+  Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((LogRecord rec) {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
