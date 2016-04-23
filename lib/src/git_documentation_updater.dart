@@ -75,7 +75,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     final short = await repo.getCommitHash(short: true);
     final long = await repo.getCommitHash();
 
-    return 'Sync with $short\n'
+    return 'Sync with $short\n\n'
         'Synced with angular/angular.io master branch, commit $short:\n'
         '$_angularRepositoryUri/tree/$long/$angularIoPath';
   }
