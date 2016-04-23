@@ -21,7 +21,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
 
   @override
   Future updateRepository(String examplePath, String outRepositoryUri,
-      {bool push: true, bool clean: true, String commitMessage: "Sync"}) async {
+      {bool push: true, bool clean: true}) async {
     try {
       // Clone content of angular repo into tmp folder.
       final tmpAngularPath = p.join(_basePath, '.tmp/angular_io');
@@ -48,12 +48,15 @@ class GitDocumentationUpdater implements DocumentationUpdater {
           angularDirectory: new Directory(angularRepository.directory),
           angularIoPath: examplePath);
 
+      final commitMessage =
+          await _createCommitMessage(angularRepository, examplePath);
+
       try {
         await _updateMaster(outRepository, commitMessage, push);
       } catch (_) {}
 
       try {
-        await _updateGhPages(outRepository, exampleName, push);
+        await _updateGhPages(outRepository, exampleName, commitMessage, push);
       } catch (_) {}
     } on GitException catch (e) {
       _logger.severe(e.message);
@@ -63,6 +66,18 @@ class GitDocumentationUpdater implements DocumentationUpdater {
         await new Directory(p.join(_basePath, '.tmp')).delete(recursive: true);
       }
     }
+  }
+
+  /// Generates a commit message containing the commit hash of the angular.io
+  /// snapshot used to generate the content of the example repository.
+  Future<String> _createCommitMessage(
+      GitRepository repo, String angularIoPath) async {
+    final short = await repo.getCommitHash(short: true);
+    final long = await repo.getCommitHash();
+
+    return 'Sync with $short\n'
+        'Synced with angular/angular.io master branch, commit $short:\n'
+        '$_angularRepositoryUri/tree/$long/$angularIoPath';
   }
 
   /// Updates the master branch with the latest cleaned example application
@@ -78,11 +93,12 @@ class GitDocumentationUpdater implements DocumentationUpdater {
   }
 
   /// Updates the gh-pages branch with the latest compiled code.
-  Future _updateGhPages(GitRepository repo, String name, bool push) async {
+  Future _updateGhPages(
+      GitRepository repo, String name, String commitMessage, bool push) async {
     // Generate the application assets into the gh-pages branch.
     String applicationAssetsPath =
         await generateApplication(new Directory(repo.directory), name);
-    await repo.updateGhPages(applicationAssetsPath);
+    await repo.updateGhPages(applicationAssetsPath, commitMessage);
 
     if (push) {
       // Push the new content to [outRepository].

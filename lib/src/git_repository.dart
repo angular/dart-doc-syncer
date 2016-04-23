@@ -61,7 +61,7 @@ class GitRepository {
   }
 
   /// Clones the git [repository] into this [directory].
-  Future updateGhPages(String sourcePath) async {
+  Future updateGhPages(String sourcePath, String message) async {
     _logger.fine('Checkout gh-pages.');
 
     try {
@@ -92,8 +92,17 @@ class GitRepository {
     _logger.fine('Comitting gh-pages changes for $directory.');
     await _assertSuccess(
         () => Process.run('git', ['add', '.'], workingDirectory: directory));
-    await _assertSuccess(() => Process.run('git', ['commit', '-m', 'Sync'],
+    await _assertSuccess(() => Process.run('git', ['commit', '-m', message],
         workingDirectory: directory));
+  }
+
+  /// Returns the commit hash at HEAD.
+  Future<String> getCommitHash({bool short: false}) async {
+    final args = "rev-parse${short ? ' --short' : ''} HEAD".split(' ');
+    final hash = await _assertSuccess(
+        () => Process.run('git', args, workingDirectory: directory));
+
+    return hash.split('\n')[0].trim();
   }
 }
 
@@ -104,10 +113,12 @@ class GitException implements Exception {
 }
 
 /// Throws if the exitCode returned by [command] is not 0.
-Future _assertSuccess(Future<ProcessResult> command()) async {
+Future<String> _assertSuccess(Future<ProcessResult> command()) async {
   final r = await command();
   if (r.exitCode != 0) {
     final message = r.stderr.isEmpty ? r.stdout : r.stderr;
     throw new GitException(message);
   }
+
+  return r.stdout;
 }
