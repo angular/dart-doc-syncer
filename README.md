@@ -25,8 +25,7 @@ dart dart_doc_syncer <path_to_example> <repository>
 
 - `path_to_example` the path to the example folder on the master branch of the
 angular.io repository.
-- `repository` the repository to which the content of the angular.io example
-will be pushed to.
+- `repository` the repository to copy the angular.io example to.
 
 Syncing all configured examples
 -------------------------------
