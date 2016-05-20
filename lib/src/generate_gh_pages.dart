@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import 'runner.dart' as Process; // TODO(chalin) tmp name to avoid code changes
+
 final String _basePath = p.dirname(Platform.script.path);
 
 /// Returns the path to the folder where the application assets have been

@@ -7,6 +7,8 @@ import 'package:path/path.dart' as p;
 import 'package:dart_doc_syncer/src/generate_readme.dart';
 import 'package:dart_doc_syncer/src/remove_doc_tags.dart';
 
+import 'runner.dart' as Process; // TODO(chalin) tmp name to avoid code changes
+
 final Logger _logger = new Logger('update_doc_repo');
 
 final String _basePath = p.dirname(Platform.script.path);
@@ -34,20 +36,22 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   ]);
 
   // Clean the application code
-  _logger.fine('Removing doc tags in $out.path.');
+  _logger.fine('Removing doc tags in ${out.path}.');
   await _removeDocTagsFromApplication(out.path);
 
   // Generate a README file
   generateReadme(out.path, angularIoPath: angularIoPath);
 
   // Format the Dart code
-  _logger.fine('Running dartfmt in $out.path.');
+  _logger.fine('Running dartfmt in ${out.path}.');
   await Process.run('dartfmt', ['-w', p.absolute(out.path)]);
 }
 
 /// Rewrites all files under the [path] directory by filtering out the
 /// documentation tags.
 Future _removeDocTagsFromApplication(String path) async {
+  if (Process.dryRun) return new Future.value(null);
+
   final files = await new Directory(path)
       .list(recursive: true)
       .where((e) => e is File)
