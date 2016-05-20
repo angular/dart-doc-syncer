@@ -5,6 +5,7 @@ import 'package:args/args.dart';
 /// Global option
 bool dryRun = true;
 bool verbose = false;
+
 ArgParser _parser;
 
 /// Processes command line options and returns remaining arguments.

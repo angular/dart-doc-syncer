@@ -9,7 +9,7 @@ import 'package:dart_doc_syncer/options.dart';
 /// Syncs an example application living in the angular.io repository to a
 /// dedicated repository that will contain a generated cleaned-up version.
 ///
-///  dart_doc_syncer [-h|-n|-v] [<exampleName> | <examplePath> <exampleRepo>]
+///    dart_doc_syncer [-h|-n|-v] [<exampleName> | <examplePath> <exampleRepo>]
 Future main(List<String> _args) async {
   var args = processArgs(_args);
   Logger.root.level = dryRun || verbose ? Level.ALL : Level.WARNING;
