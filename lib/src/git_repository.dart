@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
+import 'runner.dart' as Process; // TODO(chalin) tmp name to avoid code changes
+
 class GitRepositoryFactory {
   GitRepository create(String directory) => new GitRepository(directory);
 }
@@ -98,6 +100,8 @@ class GitRepository {
 
   /// Returns the commit hash at HEAD.
   Future<String> getCommitHash({bool short: false}) async {
+    if (Process.dryRun) return new Future.value(null);
+
     final args = "rev-parse${short ? ' --short' : ''} HEAD".split(' ');
     final hash = await _assertSuccess(
         () => Process.run('git', args, workingDirectory: directory));

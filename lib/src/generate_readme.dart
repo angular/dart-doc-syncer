@@ -2,7 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+
+import 'options.dart';
+
+final Logger _logger = new Logger('generateReadme');
 
 /// Generates a README file for the example at [path].
 Future generateReadme(String path, {String angularIoPath}) async {
@@ -73,6 +78,8 @@ If you find a problem with this sample's code, please open an
 ''';
 
   final readmeFile = new File(p.join(path, 'README.md'));
+  _logger.fine('Generating $readmeFile.');
+  if (dryRun) return new Future.value(null);
   await readmeFile.writeAsStringSync(readmeContent);
 }
 
