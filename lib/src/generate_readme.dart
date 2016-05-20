@@ -27,7 +27,7 @@ Future generateReadme(String path, {String angularIoPath}) async {
 Future _generateReadme(String path, SyncData syncData) async {
   final warningMessage = (syncData.docHref == null)
       ? '''
-**WARNING:** This example is preliminary and will probably change.
+**WARNING:** This example is preliminary and subject to change.
 
 ------------------------------------------------------------------
       '''
