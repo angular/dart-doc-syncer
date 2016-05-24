@@ -1,24 +1,39 @@
 import 'dart:async';
 
 import 'package:dart_doc_syncer/documentation_updater.dart';
+import 'package:dart_doc_syncer/options.dart';
 import 'package:logging/logging.dart';
 
 /// Syncs all angular.io example applications.
-Future main() async {
-  Logger.root.level = Level.INFO;
+Future main(List<String> _args) async {
+  processArgs(_args);
+
+  Logger.root.level = dryRun || verbose ? Level.ALL : Level.WARNING;
   Logger.root.onRecord.listen((LogRecord rec) {
-    print('${rec.level.name}: ${rec.time}: ${rec.message}');
+    var msg = '${rec.message}';
+    if (!dryRun) msg = '${rec.level.name}: ${rec.time}: ' + msg;
+    print(msg);
   });
 
+  var nUpdated = 0;
   for (List<String> example in _examplesToSync) {
     try {
+      final examplePath = example[0];
+      final exampleRepository = example[1];
+      print('Processing $examplePath');
+
       final documentation = new DocumentationUpdater();
-      await documentation.updateRepository(example[0], example[1],
+      final isUpdated = await documentation.updateRepository(
+          examplePath, exampleRepository,
           clean: _examplesToSync.last == example);
+      if (isUpdated) nUpdated++;
     } catch (e, stacktrace) {
       print('Error: $e, \nCause: $stacktrace');
     }
   }
+
+  print("Processed ${_examplesToSync.length} samples.");
+  print("Updated $nUpdated repos.");
 }
 
 final _examplesToSync = <List<String>>[

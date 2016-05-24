@@ -9,6 +9,6 @@ abstract class DocumentationUpdater {
 
   /// Updates [outRepositoryUri] based on the content of the example under
   /// [examplePath] in the angular.io repository.
-  Future updateRepository(String examplePath, String outRepositoryUri,
+  Future<bool> updateRepository(String examplePath, String outRepositoryUri,
       {bool push, bool clean});
 }

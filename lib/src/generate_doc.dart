@@ -40,7 +40,7 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   await _removeDocTagsFromApplication(out.path);
 
   // Generate a README file
-  generateReadme(out.path, angularIoPath: angularIoPath);
+  await generateReadme(out.path, angularIoPath: angularIoPath);
 
   // Format the Dart code
   _logger.fine('Running dartfmt in ${out.path}.');

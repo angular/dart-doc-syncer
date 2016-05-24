@@ -20,8 +20,9 @@ class GitDocumentationUpdater implements DocumentationUpdater {
   GitDocumentationUpdater(this._gitFactory);
 
   @override
-  Future updateRepository(String examplePath, String outRepositoryUri,
+  Future<bool> updateRepository(String examplePath, String outRepositoryUri,
       {bool push: true, bool clean: true}) async {
+    var updated = false;
     try {
       // Clone content of angular repo into tmp folder.
       final tmpAngularPath = p.join(_basePath, '.tmp/angular_io');
@@ -53,10 +54,16 @@ class GitDocumentationUpdater implements DocumentationUpdater {
 
       try {
         await _updateMaster(outRepository, commitMessage, push);
+        updated = true;
+        print("  Sample code changed.");
+        print("  Updated repo: $examplePath (master)");
       } catch (_) {}
 
       try {
         await _updateGhPages(outRepository, exampleName, commitMessage, push);
+        updated = true;
+        print("  Compiled version changed.");
+        print("  Updated repo: $examplePath (gh-pages)");
       } catch (_) {}
     } on GitException catch (e) {
       _logger.severe(e.message);
@@ -66,6 +73,8 @@ class GitDocumentationUpdater implements DocumentationUpdater {
         await new Directory(p.join(_basePath, '.tmp')).delete(recursive: true);
       }
     }
+
+    return updated;
   }
 
   /// Generates a commit message containing the commit hash of the angular.io
