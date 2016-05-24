@@ -22,6 +22,8 @@ class GitDocumentationUpdater implements DocumentationUpdater {
   @override
   Future<bool> updateRepository(String examplePath, String outRepositoryUri,
       {bool push: true, bool clean: true}) async {
+    print('Processing $examplePath');
+
     var updated = false;
     try {
       // Clone content of angular repo into tmp folder.
@@ -72,6 +74,10 @@ class GitDocumentationUpdater implements DocumentationUpdater {
         // Clean up .tmp folder
         await new Directory(p.join(_basePath, '.tmp')).delete(recursive: true);
       }
+    }
+
+    if (!updated) {
+      print("  No changes.");
     }
 
     return updated;

@@ -20,8 +20,6 @@ Future main(List<String> _args) async {
     try {
       final examplePath = example[0];
       final exampleRepository = example[1];
-      print('Processing $examplePath');
-
       final documentation = new DocumentationUpdater();
       final isUpdated = await documentation.updateRepository(
           examplePath, exampleRepository,
