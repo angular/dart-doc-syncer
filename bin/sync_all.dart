@@ -8,10 +8,10 @@ import 'package:logging/logging.dart';
 Future main(List<String> _args) async {
   processArgs(_args);
 
-  Logger.root.level = dryRun || verbose ? Level.ALL : Level.WARNING;
+  Logger.root.level = options.verbose ? Level.ALL : Level.WARNING;
   Logger.root.onRecord.listen((LogRecord rec) {
     var msg = '${rec.message}';
-    if (!dryRun) msg = '${rec.level.name}: ${rec.time}: ' + msg;
+    if (!options.dryRun && !options.verbose) msg = '${rec.level.name}: ${rec.time}: ' + msg;
     print(msg);
   });
 

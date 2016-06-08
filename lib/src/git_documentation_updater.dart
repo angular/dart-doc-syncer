@@ -2,85 +2,156 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_doc_syncer/documentation_updater.dart';
+import 'package:dart_doc_syncer/example2uri.dart';
 import 'package:dart_doc_syncer/src/generate_gh_pages.dart';
 import 'package:path/path.dart' as p;
 import 'package:logging/logging.dart';
 
 import 'git_repository.dart';
 import 'generate_doc.dart';
+import 'options.dart';
+import 'util.dart';
 
 final Logger _logger = new Logger('update_doc_repo');
 
-final String _basePath = p.dirname(Platform.script.path);
-const String _angularRepositoryUri = 'https://github.com/angular/angular.io';
-
 class GitDocumentationUpdater implements DocumentationUpdater {
   final GitRepositoryFactory _gitFactory;
+  final String _angularRepositoryUri =
+      'https://github.com/${options.user}/angular.io';
 
   GitDocumentationUpdater(this._gitFactory);
 
   @override
+  Future<int> updateMatchingRepo(RegExp re, {bool push, bool clean}) async {
+    int updateCount = 0;
+    try {
+      var angularRepository = await _cloneAngularRepoIntoTmp();
+      final files = await new Directory(angularRepository.directory)
+          .list(recursive: true)
+          .where(
+              (e) => e is File && p.basename(e.path) == exampleConfigFileName)
+          .toList();
+      for (var e in files) {
+        var dartDir = p.dirname(e.path);
+        var exampleName = getExampleName(dartDir);
+        if (re.hasMatch(e.path)) {
+          var e2u = new Example2Uri(exampleName);
+          var updated = await updateRepository(e2u.path, e2u.repositoryUri,
+              clean: clean, push: push);
+          if (updated) updateCount++;
+        } else if (options.verbose) {
+          print('Skipping $exampleName');
+        }
+      }
+    } on GitException catch (e) {
+      _logger.severe(e.message);
+    } finally {
+      await _deleteWorkDir(clean);
+    }
+
+    print("Example repo(s) updated: $updateCount");
+    return updateCount;
+  }
+
+  @override
   Future<bool> updateRepository(String examplePath, String outRepositoryUri,
-      {bool push: true, bool clean: true}) async {
-    print('Processing $examplePath');
+      {String exampleName: '', bool push: true, bool clean: true}) async {
+    if (exampleName.isEmpty) exampleName = getExampleName(examplePath);
+    print('Processing $exampleName');
 
     var updated = false;
     try {
-      // Clone content of angular repo into tmp folder.
-      final tmpAngularPath = p.join(_basePath, '.tmp/angular_io');
-      final angularRepository = _gitFactory.create(tmpAngularPath);
-
-      // Only clone into the repository if the directory is not already there.
-      if (!new Directory(angularRepository.directory).existsSync()) {
-        await angularRepository.cloneFrom(_angularRepositoryUri);
-      }
+      var angularRepository = await _cloneAngularRepoIntoTmp();
 
       // Clone [outRepository] into tmp folder.
-      final exampleName = p.basename(p.dirname(examplePath));
-      final outPath = p.join(_basePath, '.tmp/${exampleName}');
-      final outRepository = _gitFactory.create(outPath);
-      await outRepository.cloneFrom(outRepositoryUri);
+      final outPath = p.join(workDirPath, exampleName);
+      final outRepo = _gitFactory.create(outPath);
+      await outRepo.cloneFrom(outRepositoryUri);
 
       // Remove existing content as we will generate an updated version.
-      await outRepository.deleteAll();
+      await outRepo.deleteAll();
 
       _logger.fine('Generating updated example application into $outPath.');
       final exampleFolder = p.join(angularRepository.directory, examplePath);
       await assembleDocumentationExample(
-          new Directory(exampleFolder), new Directory(outRepository.directory),
+          new Directory(exampleFolder), new Directory(outRepo.directory),
           angularDirectory: new Directory(angularRepository.directory),
           angularIoPath: examplePath);
 
       final commitMessage =
           await _createCommitMessage(angularRepository, examplePath);
 
-      try {
-        await _updateMaster(outRepository, commitMessage, push);
-        updated = true;
-        print("  Sample code changed.");
-        print("  Updated repo: $examplePath (master)");
-      } catch (_) {}
+      updated = await __handleUpdate(
+          () => _update(outRepo, commitMessage, push),
+          'Example source changed',
+          exampleName,
+          outRepo.branch);
 
-      try {
-        await _updateGhPages(outRepository, exampleName, commitMessage, push);
-        updated = true;
-        print("  Compiled version changed.");
-        print("  Updated repo: $examplePath (gh-pages)");
-      } catch (_) {}
+      if (updated || options.forceBuild) {
+        print("  Building app");
+        updated = updated ||
+            await __handleUpdate(
+                () => _updateGhPages(outRepo, exampleName, commitMessage, push),
+                'App files have changed',
+                exampleName,
+                'gh-pages');
+      } else {
+        final msg = 'not built (to force use `--force-build`)';
+        print("  $exampleName (gh-pages): $msg");
+      }
     } on GitException catch (e) {
       _logger.severe(e.message);
     } finally {
-      if (clean) {
-        // Clean up .tmp folder
-        await new Directory(p.join(_basePath, '.tmp')).delete(recursive: true);
+      await _deleteWorkDir(clean);
+    }
+    return updated;
+  }
+
+  final _errorOrFatal = new RegExp(r'error|fatal', caseSensitive: false);
+  Future __handleUpdate(Future update(), String infoMsg, String exampleName,
+      String branch) async {
+    var updated = false;
+    try {
+      await update();
+      print("  $infoMsg: updated $exampleName ($branch)");
+      updated = true;
+    } catch (e) {
+      var es = e.toString();
+      if (es.contains(_errorOrFatal)) {
+        throw e; // propagate serious errors
+      } else if (!es.contains('nothing to commit')) {
+        print("** $es");
+      } else {
+        print("  $exampleName ($branch): nothing to commit");
       }
     }
-
-    if (!updated) {
-      print("  No changes.");
-    }
-
     return updated;
+  }
+
+  Future _deleteWorkDir(bool clean) async {
+    var workDir = new Directory(workDirPath);
+    if (!clean) {
+      _logger.fine('Keeping $workDirPath.');
+    } else if (await workDir.exists()) {
+      _logger.fine('Deleting $workDirPath.');
+      await workDir.delete(recursive: true);
+    }
+  }
+
+  /// Clone angular repo into tmp folder if it is not already present.
+  Future _cloneAngularRepoIntoTmp() async {
+    dryRunMkDir(workDirPath);
+
+    // Clone content of angular repo into tmp folder.
+    final tmpAngularPath = p.join(workDirPath, 'angular_io');
+    final angularRepository =
+        _gitFactory.create(tmpAngularPath, options.branch);
+
+    // Only clone into the repository if the directory is not already there.
+    if (!new Directory(angularRepository.directory).existsSync()) {
+      await angularRepository.cloneFrom(_angularRepositoryUri);
+    }
+    return angularRepository;
   }
 
   /// Generates a commit message containing the commit hash of the angular.io
@@ -91,19 +162,17 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     final long = await repo.getCommitHash();
 
     return 'Sync with $short\n\n'
-        'Synced with angular/angular.io master branch, commit $short:\n'
+        'Synced with angular/angular.io ${repo.branch} branch, commit $short:\n'
         '$_angularRepositoryUri/tree/$long/$angularIoPath';
   }
 
-  /// Updates the master branch with the latest cleaned example application
-  /// code.
-  Future _updateMaster(GitRepository repo, String message, bool push) async {
-    await repo.updateMaster(message: message);
-
+  /// Updates the branch with the latest cleaned example application code.
+  Future _update(GitRepository repo, String message, bool push) async {
+    await repo.update(message: message);
     if (push) {
-      // Push the new content to [outRepository].
-      _logger.fine('Pushing to master branch.');
       await repo.pushCurrent();
+    } else {
+      _logger.fine('NOT Pushing changes for ${repo.directory}.');
     }
   }
 
@@ -114,11 +183,10 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     String applicationAssetsPath =
         await generateApplication(new Directory(repo.directory), name);
     await repo.updateGhPages(applicationAssetsPath, commitMessage);
-
     if (push) {
-      // Push the new content to [outRepository].
-      _logger.fine('Pushing to gh-pages branch for example "$name".');
       await repo.pushGhPages();
+    } else {
+      _logger.fine('NOT Pushing changes to gh-pages for ${repo.directory}.');
     }
   }
 }

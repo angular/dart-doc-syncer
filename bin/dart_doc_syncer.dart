@@ -9,34 +9,47 @@ import 'package:dart_doc_syncer/options.dart';
 /// Syncs an example application living in the angular.io repository to a
 /// dedicated repository that will contain a generated cleaned-up version.
 ///
-///    dart_doc_syncer [-h|-n|-v] [<exampleName> | <examplePath> <exampleRepo>]
+///    dart_doc_syncer [-h|options] [<exampleName> | <examplePath> <exampleRepo>]
 Future main(List<String> _args) async {
   var args = processArgs(_args);
-  Logger.root.level = dryRun || verbose ? Level.ALL : Level.WARNING;
+  Logger.root.level = options.verbose ? Level.ALL : Level.WARNING;
   Logger.root.onRecord.listen((LogRecord rec) {
     var msg = '${rec.message}';
-    if (!dryRun) msg = '${rec.level.name}: ${rec.time}: ' + msg;
+    if (!options.dryRun && !options.verbose)
+      msg = '${rec.level.name}: ${rec.time}: ' + msg;
     print(msg);
   });
 
-  var path, repositoryUri;
+  var exampleName, path, repositoryUri;
   switch (args.length) {
+    case 0:
+      if (options.match == null)
+        printUsageAndExit('No examples specified; name example or use --match');
+        // #NotReached
+      break;
     case 1:
-      var e2u = new Example2Uri(args[0]);
+      exampleName = args[0];
+      var e2u = new Example2Uri(exampleName);
       path = e2u.path;
       repositoryUri = e2u.repositoryUri;
       break;
     case 2:
       path = args[0];
       repositoryUri = args[1];
+      exampleName = getExampleName(path);
       break;
     default:
-      printUsageAndExit("Expected 1 or 2 arguments but found ${args.length}");
+      printUsageAndExit("Too many arguments (${args.length})");
     // #NotReached
   }
 
   final documentation = new DocumentationUpdater();
-  await documentation.updateRepository(path, repositoryUri);
-
-  print('Done updating $repositoryUri');
+  if (options.match == null) {
+    await documentation.updateRepository(path, repositoryUri,
+        clean: !options.keepTmp, exampleName: exampleName, push: options.push);
+    print('Done updating $repositoryUri');
+  } else {
+    await documentation.updateMatchingRepo(options.match,
+        clean: !options.keepTmp, push: options.push);
+  }
 }

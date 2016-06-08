@@ -50,7 +50,7 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
 /// Rewrites all files under the [path] directory by filtering out the
 /// documentation tags.
 Future _removeDocTagsFromApplication(String path) async {
-  if (Process.dryRun) return new Future.value(null);
+  if (Process.options.dryRun) return new Future.value(null);
 
   final files = await new Directory(path)
       .list(recursive: true)

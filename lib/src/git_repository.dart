@@ -5,23 +5,25 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 import 'runner.dart' as Process; // TODO(chalin) tmp name to avoid code changes
+import 'util.dart';
 
 class GitRepositoryFactory {
-  GitRepository create(String directory) => new GitRepository(directory);
+  GitRepository create(String directory, [String branch = 'master']) => new GitRepository(directory, branch);
 }
 
 class GitRepository {
   final _logger = new Logger('GitRepository');
-
+  final String branch;
   final String directory;
 
-  GitRepository(this.directory);
+  GitRepository(this.directory, this.branch);
 
-  /// Clones the git [repository] into this [directory].
+  /// Clones the git [repository]'s [branch] into this [directory].
   Future cloneFrom(String repository) async {
-    _logger.fine('Cloning $repository into $directory.');
-    await _assertSuccess(
-        () => Process.run('git', ['clone', repository, directory]));
+    _logger.fine('Cloning $repository ($branch) into $directory.');
+    dryRunMkDir(directory);
+    await _assertSuccess(() =>
+        Process.run('git', ['clone', '-b', branch, repository, directory]));
   }
 
   /// Deletes all files in this git [directory].
@@ -48,16 +50,16 @@ class GitRepository {
         workingDirectory: directory));
   }
 
-  Future updateMaster({String message}) async {
-    _logger.fine('Checkout master.');
-    await _assertSuccess(() => Process.run('git', ['checkout', 'master'],
+  Future update({String message}) async {
+    _logger.fine('Checkout $branch.');
+    await _assertSuccess(() => Process.run('git', ['checkout', branch],
         workingDirectory: directory));
 
     _logger.fine('Staging local changes for $directory.');
     await _assertSuccess(
         () => Process.run('git', ['add', '.'], workingDirectory: directory));
 
-    _logger.fine('Comitting changes for $directory.');
+    _logger.fine('Committing changes for $directory.');
     await _assertSuccess(() => Process.run('git', ['commit', '-m', message],
         workingDirectory: directory));
   }
@@ -91,7 +93,7 @@ class GitRepository {
     _logger.fine('Copy from $sourcePath to $directory.');
     await Process.run('cp', ['-a', p.join(sourcePath, '.'), directory]);
 
-    _logger.fine('Comitting gh-pages changes for $directory.');
+    _logger.fine('Committing gh-pages changes for $directory.');
     await _assertSuccess(
         () => Process.run('git', ['add', '.'], workingDirectory: directory));
     await _assertSuccess(() => Process.run('git', ['commit', '-m', message],
@@ -100,7 +102,7 @@ class GitRepository {
 
   /// Returns the commit hash at HEAD.
   Future<String> getCommitHash({bool short: false}) async {
-    if (Process.dryRun) return new Future.value(null);
+    if (Process.options.dryRun) return new Future.value('COMMIT_HASH_CODE');
 
     final args = "rev-parse${short ? ' --short' : ''} HEAD".split(' ');
     final hash = await _assertSuccess(
@@ -114,6 +116,11 @@ class GitException implements Exception {
   final String message;
 
   GitException(this.message);
+
+  String toString() {
+    if (message == null) return "GitException";
+    return "GitException: $message";
+  }
 }
 
 /// Throws if the exitCode returned by [command] is not 0.

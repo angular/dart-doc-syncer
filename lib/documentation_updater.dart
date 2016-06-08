@@ -10,5 +10,9 @@ abstract class DocumentationUpdater {
   /// Updates [outRepositoryUri] based on the content of the example under
   /// [examplePath] in the angular.io repository.
   Future<bool> updateRepository(String examplePath, String outRepositoryUri,
-      {bool push, bool clean});
+      {String exampleName, bool push, bool clean});
+
+  /// Updates all example repositories containing a doc syncer data file
+  /// and whose path matches [re].
+  Future<int> updateMatchingRepo(RegExp re, {bool push, bool clean});
 }
