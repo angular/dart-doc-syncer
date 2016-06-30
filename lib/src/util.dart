@@ -21,3 +21,12 @@ Future dryRunMkDir(String path) async {
   var dir = new Directory(path);
   return await dir.create();
 }
+
+/// Read [path] as a string, apply [transformer] and write back the result.
+Future<Null> transformFile(String path, transformer(dynamic content)) async {
+  _logger.fine('  Transform file $path');
+  if (options.dryRun) return new Future.value();
+
+  File file = new File(path);
+  await file.writeAsString(transformer(await file.readAsString()));
+}

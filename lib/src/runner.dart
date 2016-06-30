@@ -7,15 +7,23 @@ export 'options.dart' show options;
 
 final Logger _logger = new Logger('runner');
 
+Exception newException(String msg) => new Exception(msg);
+
 Future<ProcessResult> run(String executable, List<String> arguments,
-    {String workingDirectory}) {
+    {String workingDirectory, Exception mkException(String msg): newException}) async {
   var message = "  > $executable ${arguments.join(' ')}";
   if (workingDirectory != null) message += " ($workingDirectory)";
   _logger.finest(message);
 
-  if (!options.dryRun)
-    return Process.run(executable, arguments,
-        workingDirectory: workingDirectory);
+  if (!options.dryRun) {
+    final r =
+        await Process.run(executable, arguments, workingDirectory: workingDirectory);
+    if (r.exitCode != 0) {
+      final message = r.stderr.isEmpty ? r.stdout : r.stderr;
+      throw mkException(message);
+    }
+    return r;
+  }
 
   if (executable == 'git' && arguments[0] == 'clone') {
     var path = arguments[2];
