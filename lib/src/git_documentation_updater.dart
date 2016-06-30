@@ -88,13 +88,13 @@ class GitDocumentationUpdater implements DocumentationUpdater {
           outRepo.branch);
 
       if (updated || options.forceBuild) {
-        print("  Building app");
-        updated = updated ||
-            await __handleUpdate(
+        print('  Building app' + (options.forceBuild ? ' (force build)' : ''));
+        updated = await __handleUpdate(
                 () => _updateGhPages(outRepo, exampleName, commitMessage, push),
                 'App files have changed',
                 exampleName,
-                'gh-pages');
+                'gh-pages') ||
+            updated;
       } else {
         final msg = 'not built (to force use `--force-build`)';
         print("  $exampleName (gh-pages): $msg");

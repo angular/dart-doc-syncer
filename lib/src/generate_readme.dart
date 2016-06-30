@@ -84,7 +84,7 @@ If you find a problem with this sample's code, please open an
 
   final readmeFile = new File(p.join(path, 'README.md'));
   _logger.fine('Generating $readmeFile.');
-  await readmeFile.writeAsStringSync(readmeContent);
+  await readmeFile.writeAsString(readmeContent);
 }
 
 /// Holds metadata about the example application that is used to generate a

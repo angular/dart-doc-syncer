@@ -27,7 +27,7 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   await Process.run('cp', ['-a', p.join(snapshot.path, '.'), out.path]);
 
   // Remove unimportant files that would distract the user.
-  await Process.run('rm', [p.join(out.path, '.analysis_options')]);
+  await Process.run('rm', ['-f', p.join(out.path, '.analysis_options')]);
 
   // Add the common styles file.
   await Process.run('cp', [
