@@ -14,6 +14,7 @@ class GitRepositoryFactory {
 class GitRepository {
   final _logger = new Logger('GitRepository');
   final String branch;
+  /// Local path to directory where this repo will reside.
   final String directory;
 
   GitRepository(this.directory, this.branch);
