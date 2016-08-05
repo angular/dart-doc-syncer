@@ -6,7 +6,8 @@ description: >
   angular.io repository.
 author: Thibault Sottiaux <thso@google.com>
 dependencies:
+  args: ^0.13.0
   logging: ^0.11.2
-  path: '^1.2.0'
+  path: ^1.2.0
 dev_dependencies:
   test: ^0.12.8
