@@ -59,8 +59,9 @@ Welcome to the example application used in angular.io/dart's
 
 $liveExampleSection
 
-1. Clone this repo.
-2. Download the dependencies:
+1. Clone or [download][] this repo.
+   [download]: //github.com/angular-examples/${syncData.name}/archive/master.zip
+2. Get the dependencies:
 
   `pub get`
 3. Launch a development server:
