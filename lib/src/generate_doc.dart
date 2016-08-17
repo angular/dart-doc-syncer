@@ -37,7 +37,7 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
 
   // Remove source files used solely in support of the prose.
   final targetFiles =
-      whitelist.map((ext) => '-name "*_[0-9]$ext"').join(' -o ');
+      whitelist.map((ext) => '-name *_[0-9]$ext').join(' -o ');
   await Process.run('find',
       [out.path]..addAll('( $targetFiles ) -exec rm -f {} +'.split(' ')));
 
