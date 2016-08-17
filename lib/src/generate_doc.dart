@@ -14,6 +14,8 @@ final Logger _logger = new Logger('update_doc_repo');
 final String _basePath = p.dirname(Platform.script.path);
 final String _defaultAssetsPath = p.join(_basePath, "../default_assets");
 
+const whitelist = const ['.css', '.dart', '.html', '.yaml'];
+
 /// Generates a clean documentation application folder based on the raw content
 /// at [snaphsot].
 Future assembleDocumentationExample(Directory snapshot, Directory out,
@@ -27,7 +29,17 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   await Process.run('cp', ['-a', p.join(snapshot.path, '.'), out.path]);
 
   // Remove unimportant files that would distract the user.
-  await Process.run('rm', ['-f', p.join(out.path, '.analysis_options')]);
+  await Process.run('rm', [
+    '-f',
+    p.join(out.path, '.analysis_options'),
+    p.join(out.path, 'example-config.json')
+  ]);
+
+  // Remove source files used solely in support of the prose.
+  final targetFiles =
+      whitelist.map((ext) => '-name *_[0-9]$ext').join(' -o ');
+  await Process.run('find',
+      [out.path]..addAll('( $targetFiles ) -exec rm -f {} +'.split(' ')));
 
   // Add the common styles file.
   await Process.run('cp', [
@@ -61,7 +73,6 @@ Future _removeDocTagsFromApplication(String path) async {
 
 /// Rewrites the [file] by filtering out the documentation tags.
 Future _removeDocTagsFromFile(File file) async {
-  const whitelist = const ['.html', '.dart', '.yaml'];
   if (whitelist.every((String e) => !file.path.endsWith(e))) return null;
 
   final content = await file.readAsString();
