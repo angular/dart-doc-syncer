@@ -35,3 +35,45 @@ Run `sync_all` to efficiently synchronize all configured examples.
 ```
 dart sync_all
 ```
+
+How to get the tools
+--------------------
+
+1. Clone the repo: `git clone git@github.com:angular/dart-doc-syncer.git`
+2. Make the bin files executable: `chmod 755 dart-doc-syncer/bin/*`
+3. Get the dependencies: `cd dart-doc-syncer; pub get`
+
+Options
+-------
+
+```
+dart ~/GITHUB/dart-doc-syncer/bin/dart_doc_syncer.dart --help
+
+Syncs angular.io example applications..
+
+Usage: dart_doc_syncer [options] [<exampleName> | <examplePath> <exampleRepo>]
+
+-h, --help           show this usage information
+-b, --branch         <branch-name>
+                     git angular.io branch to fetch
+                     (defaults to "master")
+
+-n, --dry-run        show which commands would be executed but make (almost) no changes;
+                     only the temporary directory will be created
+
+-f, --force-build    forces build of example app when sources have not changed
+-k, --keep-tmp       do not delete temporary working directory (.tmp) once done
+-p, --[no-]push      prepare updates and push to example repo
+                     (defaults to on)
+
+-m, --match          <dart-regexp>
+                     sync all examples having a data file (.docsync.json)
+                     and whose repo path matches the given regular expression;
+                     use "." to match all
+
+-u, --user           <user-id>
+                     GitHub id of angular.io repo to fetch
+                     (defaults to "angular")
+
+-v, --verbose        
+```
