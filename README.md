@@ -40,8 +40,7 @@ How to get the tools
 --------------------
 
 1. Clone the repo: `git clone git@github.com:angular/dart-doc-syncer.git`
-2. Make the bin files executable: `chmod 755 dart-doc-syncer/bin/*`
-3. Get the dependencies: `cd dart-doc-syncer; pub get`
+2. Get the dependencies: `cd dart-doc-syncer; pub get`
 
 Options
 -------
