@@ -43,7 +43,7 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
 
   // Add the common styles file.
   await Process.run('cp', [
-    p.join(angularDirectory.path, 'public/docs/_examples/styles.css'),
+    p.join(angularDirectory.path, 'public/docs/_examples/_boilerplate/styles.css'),
     p.join(out.path, 'web/styles.css')
   ]);
 
