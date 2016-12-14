@@ -4,7 +4,7 @@ import 'package:dart_doc_syncer/documentation_updater.dart';
 import 'package:dart_doc_syncer/options.dart';
 import 'package:logging/logging.dart';
 
-/// Syncs all angular.io example applications.
+/// Syncs all Angular docs example applications.
 Future main(List<String> _args) async {
   processArgs(_args);
 

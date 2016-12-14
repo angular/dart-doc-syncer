@@ -31,7 +31,7 @@ class SyncData {
       : this.name = name.isEmpty ? getExampleName(path) : name,
         this.docPart = docPart,
         this.docHref = docHref.isEmpty
-            ? p.join(dartDocUriPrefix, docPart, '${getExampleName(path)}.html')
+            ? p.join(dartDocUriPrefix, docPart, '${getExampleName(path)}')
             : docHref.startsWith('http')
                 ? docHref
                 : p.join(dartDocUriPrefix, docPart, docHref),
@@ -41,7 +41,7 @@ class SyncData {
                 ? liveExampleHref
                 : p.join(exampleHostUriPrefix, liveExampleHref),
         this.repoHref = repoHref.isEmpty
-            ? '//github.com/angular/angular.io/tree/master/' + path
+            ? '//github.com/dart-lang/site-webdev/tree/master/' + path
             : repoHref;
 
   factory SyncData.fromJson(String json, {String path}) {
