@@ -8,7 +8,7 @@ abstract class DocumentationUpdater {
       new GitDocumentationUpdater(new GitRepositoryFactory());
 
   /// Updates [outRepositoryUri] based on the content of the example under
-  /// [examplePath] in the angular.io repository.
+  /// [examplePath] in the Angular docs repository.
   Future<bool> updateRepository(String examplePath, String outRepositoryUri,
       {String exampleName, bool push, bool clean});
 

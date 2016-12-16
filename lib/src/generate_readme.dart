@@ -10,14 +10,14 @@ import 'sync_data.dart';
 final Logger _logger = new Logger('generateReadme');
 
 /// Generates a README file for the example at [path].
-Future generateReadme(String path, {String angularIoPath}) async {
+Future generateReadme(String path, {String webdevNgPath}) async {
   final syncDataFile = new File(p.join(path, exampleConfigFileName));
   final dataExists = await syncDataFile.exists();
 
   final syncData = dataExists
       ? new SyncData.fromJson(await syncDataFile.readAsStringSync(),
-          path: angularIoPath)
-      : new SyncData(title: p.basename(path), path: angularIoPath);
+          path: webdevNgPath)
+      : new SyncData(title: p.basename(path), path: webdevNgPath);
 
   await _generateReadme(path, syncData);
   if (dataExists) await syncDataFile.delete();
@@ -45,8 +45,8 @@ Future _generateReadme(String path, SyncData syncData) async {
       : 'You can run a [hosted copy](${syncData.liveExampleHref}) of this '
       'sample. Or run your own copy:';
 
-  final newIssueUri = '//github.com/angular/angular.io/issues/new'
-      '?labels=dart,example&title=%5BDart%5D%5Bexample%5D%20'
+  final newIssueUri = '//github.com/dart-lang/site-webdev/issues/new'
+      '?labels=example&title=%5BAngular%5D%5Bexample%5D%20'
       '${syncData.id}%3A%20';
 
   final readmeContent = '''
@@ -54,7 +54,7 @@ $warningMessage
 
 ## ${syncData.title}
 
-Welcome to the example application used in angular.io/dart's
+Welcome to the example application used in AngularDart's
 [${syncData.title}](${syncData.docHref}) page.
 
 $liveExampleSection
@@ -76,10 +76,10 @@ $linkSection
 -------------------------------------------------------
 
 *Note:* The content of this repository is generated from
-[the angular.io repository](${syncData.repoHref}) by running the
+[the Angular docs repository](${syncData.repoHref}) by running the
 [dart-doc-syncer](//github.com/angular/dart-doc-syncer) tool.
 If you find a problem with this sample's code, please open an
-[issue at angular/angular.io]($newIssueUri).
+[issue]($newIssueUri).
 ''';
 
   final readmeFile = new File(p.join(path, 'README.md'));

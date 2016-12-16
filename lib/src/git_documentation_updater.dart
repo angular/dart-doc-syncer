@@ -17,7 +17,7 @@ final Logger _logger = new Logger('update_doc_repo');
 class GitDocumentationUpdater implements DocumentationUpdater {
   final GitRepositoryFactory _gitFactory;
   final String _angularRepositoryUri =
-      'https://github.com/${options.user}/angular.io';
+      'https://github.com/${options.user}/site-webdev';
 
   GitDocumentationUpdater(this._gitFactory);
 
@@ -76,7 +76,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
       await assembleDocumentationExample(
           new Directory(exampleFolder), new Directory(outRepo.directory),
           angularDirectory: new Directory(angularRepository.directory),
-          angularIoPath: examplePath);
+          webdevNgPath: examplePath);
 
       final commitMessage =
           await _createCommitMessage(angularRepository, examplePath);
@@ -142,10 +142,10 @@ class GitDocumentationUpdater implements DocumentationUpdater {
   Future _cloneAngularRepoIntoTmp() async {
     dryRunMkDir(workDirPath);
 
-    // Clone content of angular repo into tmp folder.
-    final tmpAngularPath = p.join(workDirPath, 'angular_io');
+    // Clone content of Angular docs repo into tmp folder.
+    final tmpAngularDocsRepoPath = p.join(workDirPath, 'site_webdev_ng');
     final angularRepository =
-        _gitFactory.create(tmpAngularPath, options.branch);
+        _gitFactory.create(tmpAngularDocsRepoPath, options.branch);
 
     // Only clone into the repository if the directory is not already there.
     if (!new Directory(angularRepository.directory).existsSync()) {
@@ -154,16 +154,16 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     return angularRepository;
   }
 
-  /// Generates a commit message containing the commit hash of the angular.io
+  /// Generates a commit message containing the commit hash of the Angular docs
   /// snapshot used to generate the content of the example repository.
   Future<String> _createCommitMessage(
-      GitRepository repo, String angularIoPath) async {
+      GitRepository repo, String webdevNgPath) async {
     final short = await repo.getCommitHash(short: true);
     final long = await repo.getCommitHash();
 
     return 'Sync with $short\n\n'
-        'Synced with angular/angular.io ${repo.branch} branch, commit $short:\n'
-        '$_angularRepositoryUri/tree/$long/$angularIoPath';
+        'Synced with dart-lang/site-webdev ${repo.branch} branch, commit $short:\n'
+        '$_angularRepositoryUri/tree/$long/$webdevNgPath';
   }
 
   /// Updates the branch with the latest cleaned example application code.

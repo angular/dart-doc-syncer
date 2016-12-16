@@ -19,7 +19,7 @@ const whitelist = const ['.css', '.dart', '.html', '.yaml'];
 /// Generates a clean documentation application folder based on the raw content
 /// at [snaphsot].
 Future assembleDocumentationExample(Directory snapshot, Directory out,
-    {Directory angularDirectory, String angularIoPath}) async {
+    {Directory angularDirectory, String webdevNgPath}) async {
   out.createSync(recursive: false);
 
   // Add default assets first.
@@ -52,7 +52,7 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   await _removeDocTagsFromApplication(out.path);
 
   // Generate a README file
-  await generateReadme(out.path, angularIoPath: angularIoPath);
+  await generateReadme(out.path, webdevNgPath: webdevNgPath);
 
   // Format the Dart code
   _logger.fine('Running dartfmt in ${out.path}.');

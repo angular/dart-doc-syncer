@@ -6,7 +6,7 @@ import 'package:dart_doc_syncer/documentation_updater.dart';
 import 'package:dart_doc_syncer/example2uri.dart';
 import 'package:dart_doc_syncer/options.dart';
 
-/// Syncs an example application living in the angular.io repository to a
+/// Syncs an example application living in the Angular docs repository to a
 /// dedicated repository that will contain a generated cleaned-up version.
 ///
 ///    dart_doc_syncer [-h|options] [<exampleName> | <examplePath> <exampleRepo>]
