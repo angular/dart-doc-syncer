@@ -19,12 +19,19 @@ Future<String> generateApplication(
   // Copy the application code into a separate folder.
   await Process.run('cp', ['-a', p.join(example.path, '.'), applicationPath]);
 
-  _logger.fine(
-      'Adjust router <base href> in index.html so that it works under gh-pages');
+  _logger
+      .fine('Adjust <base href> in index.html so that app runs under gh-pages');
+
+  // If the `index.html` either statically or dynamically sets <base href>
+  // replace that element by a <base href> appropriate for serving via GH pages.
+  final baseHrefEltOrScript = new RegExp(r'<base href="/">|'
+      r'<script>(\s|[^<])+<base href(\s|[^<]|<[^/])+</script>');
+
+  final appBaseHref = '<base href="/$exampleName/">';
   await transformFile(
       p.join(applicationPath, 'web/index.html'),
-      (content) => content.replaceAll(
-          '<base href="/">', '<base href="/$exampleName/">'));
+      (String content) =>
+          content.replaceFirst(baseHrefEltOrScript, appBaseHref));
 
   _logger.fine("Build the application assets into the 'build' folder");
   await Process.run('pub', ['get'], workingDirectory: applicationPath);
