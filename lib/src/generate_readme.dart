@@ -30,15 +30,17 @@ Future _generateReadme(String path, SyncData syncData) async {
 **WARNING:** This example is preliminary and subject to change.
 
 ------------------------------------------------------------------
-      '''
+
+
+'''
       : '';
 
   final linkSection = syncData.links.isEmpty
       ? ''
-      : 'See also:\n' +
+      : '\nSee also:\n' +
           syncData.links.map((String link) {
             return '- $link';
-          }).join('\n');
+          }).join('\n') + '\n';
 
   final liveExampleSection = syncData.liveExampleHref.isEmpty
       ? 'To run your own copy:'
@@ -50,9 +52,7 @@ Future _generateReadme(String path, SyncData syncData) async {
       '${syncData.id}%3A%20';
 
   final readmeContent = '''
-$warningMessage
-
-## ${syncData.title}
+$warningMessage## ${syncData.title}
 
 Welcome to the example application used in AngularDart's
 [${syncData.title}](${syncData.docHref}) page.
@@ -60,26 +60,24 @@ Welcome to the example application used in AngularDart's
 $liveExampleSection
 
 1. Clone or [download][] this repo.
-   [download]: //github.com/angular-examples/${syncData.name}/archive/master.zip
-2. Get the dependencies:
+2. Get the dependencies: `pub get`
+3. Launch a development server: `pub serve`
+4. In a browser, open [http://localhost:8080](http://localhost:8080)
 
-  `pub get`
-3. Launch a development server:
-
-  `pub serve`
-4. Open a browser to `http://localhost:8080`.<br/>
-  In Dartium, you'll see the app right away. In other modern browsers,
-  you'll have to wait a bit while pub converts the app.
-
+In Dartium, you'll see the app right away. In other modern browsers,
+you'll have to wait a bit while pub converts the app.
 $linkSection
-
--------------------------------------------------------
+---
 
 *Note:* The content of this repository is generated from
-[the Angular docs repository](${syncData.repoHref}) by running the
+[the Angular docs repository][docs repo] by running the
 [dart-doc-syncer](//github.com/angular/dart-doc-syncer) tool.
 If you find a problem with this sample's code, please open an
-[issue]($newIssueUri).
+[issue][].
+
+[docs repo]: ${syncData.repoHref}
+[download]: //github.com/angular-examples/${syncData.name}/archive/master.zip
+[issue]: $newIssueUri
 ''';
 
   final readmeFile = new File(p.join(path, 'README.md'));
