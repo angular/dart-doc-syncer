@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
-
+import 'package:dart_doc_syncer/example2uri.dart';
 import 'package:dart_doc_syncer/src/generate_readme.dart';
 import 'package:dart_doc_syncer/src/remove_doc_tags.dart';
+import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 
 import 'runner.dart' as Process; // TODO(chalin) tmp name to avoid code changes
 
@@ -29,21 +29,16 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   await Process.run('cp', ['-a', p.join(snapshot.path, '.'), out.path]);
 
   // Remove unimportant files that would distract the user.
-  await Process.run('rm', [
-    '-f',
-    p.join(out.path, '.analysis_options'),
-    p.join(out.path, 'example-config.json')
-  ]);
+  await Process.run('rm', ['-f', p.join(out.path, 'example-config.json')]);
 
   // Remove source files used solely in support of the prose.
-  final targetFiles =
-      whitelist.map((ext) => '-name *_[0-9]$ext').join(' -o ');
+  final targetFiles = whitelist.map((ext) => '-name *_[0-9]$ext').join(' -o ');
   await Process.run('find',
       [out.path]..addAll('( $targetFiles ) -exec rm -f {} +'.split(' ')));
 
   // Add the common styles file.
   await Process.run('cp', [
-    p.join(angularDirectory.path, 'public/docs/_examples/_boilerplate/styles.css'),
+    p.join(angularDirectory.path, '$docExampleDirRoot/_boilerplate/styles.css'),
     p.join(out.path, 'web/styles.css')
   ]);
 

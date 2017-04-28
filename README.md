@@ -8,22 +8,20 @@ to individual repos under [angular-examples](https://github.com/angular-examples
 Syncing a single example
 ------------------------
 
-Run `dart_doc_syncer` to sync a single example folder to a given example repository.
+Run `dart_doc_syncer` to sync a single example folder. Use the example name as an argument
+to the `--match` option. For example:
 
 ```
-dart dart_doc_syncer <path_to_example> <repository>
+dart dart_doc_syncer --match architecture
 ```
 
-- `path_to_example` the path to the example folder on the master branch of the Angular docs repo.
-- `repository` the repository to copy the example to.
-
-Syncing all configured examples
+Syncing multiple examples
 -------------------------------
 
-Run `sync_all` to efficiently synchronize all configured examples.
-
+The `--match` option actually takes a regular expression as an argument.
+To sync all examples you can use `.` as a "match-all" pattern:
 ```
-dart sync_all
+dart dart_doc_syncer --match .
 ```
 
 How to get the tools
