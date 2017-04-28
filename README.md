@@ -1,37 +1,29 @@
 # dart-doc-syncer
 
-A utility for syncing Dart examples for the Angular 2 docs (https://webdev.dartlang.org/angular).
+A utility for syncing Dart examples for the AngularDart docs (https://webdev.dartlang.org/angular).
 
 Example sources are read from the [dart-lang/site-webdev repo](https://github.com/dart-lang/site-webdev) and written
 to individual repos under [angular-examples](https://github.com/angular-examples).
 
-Syncing a single example
-------------------------
+## Syncing a single example
 
-Run `dart_doc_syncer` to sync a single example folder. Use the example name as an argument
-to the `--match` option. For example:
+Use the example name as an argument. For example:
 
 ```
-dart dart_doc_syncer --match architecture
+dart dart_doc_syncer architecture
 ```
 
-Syncing multiple examples
--------------------------------
+## Syncing multiple examples
 
-The `--match` option actually takes a regular expression as an argument.
-To sync all examples you can use `.` as a "match-all" pattern:
+The `--match` option takes a regular expression as an argument.
+The `dart_doc_syncer` will sync all examples that match the regex.
+To sync all examples, you can use `.` (dot) as a "match-all" pattern:
+
 ```
 dart dart_doc_syncer --match .
 ```
 
-How to get the tools
---------------------
-
-1. Clone the repo: `git clone git@github.com:angular/dart-doc-syncer.git`
-2. Get the dependencies: `cd dart-doc-syncer; pub get`
-
-Options
--------
+## Options
 
 ```
 dart ~/GITHUB/dart-doc-syncer/bin/dart_doc_syncer.dart --help
