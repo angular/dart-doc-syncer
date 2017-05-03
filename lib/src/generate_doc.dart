@@ -29,7 +29,11 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   await Process.run('cp', ['-a', p.join(snapshot.path, '.'), out.path]);
 
   // Remove unimportant files that would distract the user.
-  await Process.run('rm', ['-f', p.join(out.path, 'example-config.json')]);
+  await Process.run('rm', [
+    '-f',
+    p.join(out.path, 'example-config.json'),
+    p.join(out.path, 'e2e-spec.ts')
+  ]);
 
   // Remove source files used solely in support of the prose.
   final targetFiles = whitelist.map((ext) => '-name *_[0-9]$ext').join(' -o ');
@@ -37,8 +41,10 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
       [out.path]..addAll('( $targetFiles ) -exec rm -f {} +'.split(' ')));
 
   // Add the common styles file.
+  final boilerPlatePath =
+      p.join(angularDirectory.path, docExampleDirRoot, '_boilerplate');
   await Process.run('cp', [
-    p.join(angularDirectory.path, '$docExampleDirRoot/_boilerplate/styles.css'),
+    p.join(boilerPlatePath, 'styles.css'),
     p.join(out.path, 'web/styles.css')
   ]);
 
