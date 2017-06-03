@@ -23,7 +23,7 @@ Options options = new Options();
 const dartDocHostUri = 'https://webdev.dartlang.org';
 const dartDocUriPrefix = dartDocHostUri + '/angular';
 const exampleConfigFileName = '.docsync.json';
-const exampleHostUriPrefix = 'http://angular-examples.github.io/';
+const exampleHostUriPrefix = '$dartDocHostUri/examples/ng/doc';
 const tmpDirName = '.tmp';
 
 String _workDirBase = [
