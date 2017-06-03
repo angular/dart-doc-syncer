@@ -64,7 +64,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
       var angularRepository = await _cloneAngularRepoIntoTmp();
 
       // Clone [outRepository] into tmp folder.
-      final outPath = p.join(workDirPath, exampleName);
+      final outPath = p.join(workDir.path, exampleName);
       final outRepo = _gitFactory.create(outPath);
       await outRepo.cloneFrom(outRepositoryUri);
 
@@ -129,21 +129,20 @@ class GitDocumentationUpdater implements DocumentationUpdater {
   }
 
   Future _deleteWorkDir(bool clean) async {
-    var workDir = new Directory(workDirPath);
     if (!clean) {
-      _logger.fine('Keeping $workDirPath.');
+      _logger.fine('Keeping ${workDir.path}.');
     } else if (await workDir.exists()) {
-      _logger.fine('Deleting $workDirPath.');
+      _logger.fine('Deleting ${workDir.path}.');
       await workDir.delete(recursive: true);
     }
   }
 
   /// Clone angular repo into tmp folder if it is not already present.
   Future _cloneAngularRepoIntoTmp() async {
-    dryRunMkDir(workDirPath);
+    dryRunMkDir(workDir.path);
 
     // Clone content of Angular docs repo into tmp folder.
-    final tmpAngularDocsRepoPath = p.join(workDirPath, 'site_webdev_ng');
+    final tmpAngularDocsRepoPath = p.join(workDir.path, 'site_webdev_ng');
     final angularRepository =
         _gitFactory.create(tmpAngularDocsRepoPath, options.branch);
 
