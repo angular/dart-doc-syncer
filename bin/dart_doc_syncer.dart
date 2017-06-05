@@ -44,6 +44,7 @@ Future main(List<String> _args) async {
   }
 
   final documentation = new DocumentationUpdater();
+  print('Temporary working directory: ${workDir.path}');
   if (options.match == null) {
     await documentation.updateRepository(path, repositoryUri,
         clean: !options.keepTmp, exampleName: exampleName, push: options.push);

@@ -14,7 +14,7 @@ final Logger _logger = new Logger('generate_gh_pages');
 /// generated.
 Future<String> generateApplication(
     Directory example, String exampleName) async {
-  final applicationPath = p.join(workDirPath, '${exampleName}_app');
+  final applicationPath = p.join(workDir.path, '${exampleName}_app');
 
   // Copy the application code into a separate folder.
   await Process.run('cp', ['-a', p.join(example.path, '.'), applicationPath]);

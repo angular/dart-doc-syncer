@@ -41,7 +41,7 @@ Usage: dart_doc_syncer [options] [<exampleName> | <examplePath> <exampleRepo>]
                      only the temporary directory will be created
 
 -f, --force-build    forces build of example app when sources have not changed
--k, --keep-tmp       do not delete temporary working directory (.tmp) once done
+-k, --keep-tmp       do not delete temporary working directory once done
 -p, --[no-]push      prepare updates and push to example repo
                      (defaults to on)
 
