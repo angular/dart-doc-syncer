@@ -44,8 +44,9 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   final boilerPlatePath =
       p.join(angularDirectory.path, docExampleDirRoot, '_boilerplate');
   await Process.run('cp', [
+    p.join(boilerPlatePath, 'favicon.png'),
     p.join(boilerPlatePath, 'styles.css'),
-    p.join(out.path, 'web/styles.css')
+    p.join(out.path, 'web')
   ]);
 
   // Clean the application code
