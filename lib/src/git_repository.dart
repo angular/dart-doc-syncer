@@ -18,22 +18,22 @@ class GitRepository {
   final String branch;
 
   /// Local path to directory where this repo will reside.
-  final String directory; // FIXME: rename to dirPath later
+  final String dirPath;
   final Directory dir;
 
-  GitRepository(this.directory, this.branch) : dir = new Directory(directory);
+  GitRepository(this.dirPath, this.branch) : dir = new Directory(dirPath);
 
-  /// Clones the git [repository]'s [branch] into this [directory].
+  /// Clones the git [repository]'s [branch] into this [dirPath].
   Future cloneFrom(String repository) async {
-    _logger.fine('Cloning $repository ($branch) into $directory.');
-    dryRunMkDir(directory);
+    _logger.fine('Cloning $repository ($branch) into $dirPath.');
+    dryRunMkDir(dirPath);
     if (dir.existsSync()) {
-      _logger.fine('  > clone already exists for $directory');
+      _logger.fine('  > clone already exists for $dirPath');
       await checkout();
       return;
     }
     try {
-      await _git(['clone', '-b', branch, repository, directory]);
+      await _git(['clone', '-b', branch, repository, dirPath]);
       return;
     } catch (e) {
       // if (!e.toString().contains('Remote branch $branch not found'))
@@ -47,12 +47,12 @@ class GitRepository {
 
   Future checkout() async {
     _logger.fine('Checkout $branch.');
-    await _git(['checkout', branch], workingDirectory: directory);
+    await _git(['checkout', branch], workingDirectory: dirPath);
   }
 
-  /// Delete all files under [directory]/subdir.
+  /// Delete all files under [dirPath]/subdir.
   Future delete([String subdir = '']) async {
-    final dir = p.join(directory, subdir);
+    final dir = p.join(dirPath, subdir);
     _logger.fine('Git rm * under $dir.');
     if (new Directory(dir).existsSync()) {
       try {
@@ -65,43 +65,43 @@ class GitRepository {
     _logger.fine('  > No matching files; probably already removed ($dir)');
   }
 
-  /// Push given branch, or [branch] to origin from [directory].
+  /// Push given branch, or [branch] to origin from [dirPath].
   Future push([String _branch]) async {
     final branch = _branch ?? this.branch;
-    _logger.fine('Pushing $branch from $directory.');
+    _logger.fine('Pushing $branch from $dirPath.');
     await _git(['push', '--set-upstream', 'origin', branch],
-        workingDirectory: directory);
+        workingDirectory: dirPath);
   }
 
   Future update({String commitMessage}) async {
     await checkout();
 
-    _logger.fine('Staging local changes for $directory.');
-    await _git(['add', '.'], workingDirectory: directory);
+    _logger.fine('Staging local changes for $dirPath.');
+    await _git(['add', '.'], workingDirectory: dirPath);
 
-    _logger.fine('Committing changes for $directory.');
-    await _git(['commit', '-m', commitMessage], workingDirectory: directory);
+    _logger.fine('Committing changes for $dirPath.');
+    await _git(['commit', '-m', commitMessage], workingDirectory: dirPath);
   }
 
-  /// Clones the git [repository] into this [directory].
+  /// Clones the git [repository] into this [dirPath].
   Future updateGhPages(String sourcePath, String message) async {
     _logger.fine('Checkout gh-pages.');
 
     try {
-      await _git(['fetch', 'origin', 'gh-pages'], workingDirectory: directory);
-      await _git(['checkout', 'gh-pages'], workingDirectory: directory);
+      await _git(['fetch', 'origin', 'gh-pages'], workingDirectory: dirPath);
+      await _git(['checkout', 'gh-pages'], workingDirectory: dirPath);
     } catch (e) {
       _logger.fine('Unable to fetch gh-pages: ${(e as GitException).message}');
       _logger.fine('Creating new --orphan gh-pages branch.');
       await _git(['checkout', '--orphan', 'gh-pages'],
-          workingDirectory: directory);
+          workingDirectory: dirPath);
     }
 
     await delete(options.ghPagesAppDir);
 
     // Copy the application assets into this folder.
-    _logger.fine('Copy from $sourcePath to $directory.');
-    final dest = p.join(directory, options.ghPagesAppDir);
+    _logger.fine('Copy from $sourcePath to $dirPath.');
+    final dest = p.join(dirPath, options.ghPagesAppDir);
     await Process.run('cp', ['-a', p.join(sourcePath, '.'), dest]);
 
     await Process.run(
@@ -110,9 +110,9 @@ class GitRepository {
             '( -name *.ng_*.json -o -name *.ng_placeholder ) -exec rm -f {} +'
                 .split(' ')));
 
-    _logger.fine('Committing gh-pages changes for $directory.');
-    await _git(['add', '.'], workingDirectory: directory);
-    await _git(['commit', '-m', message], workingDirectory: directory);
+    _logger.fine('Committing gh-pages changes for $dirPath.');
+    await _git(['add', '.'], workingDirectory: dirPath);
+    await _git(['commit', '-m', message], workingDirectory: dirPath);
   }
 
   /// Returns the commit hash at HEAD.
@@ -120,7 +120,7 @@ class GitRepository {
     if (Process.options.dryRun) return new Future.value('COMMIT_HASH_CODE');
 
     final args = "rev-parse${short ? ' --short' : ''} HEAD".split(' ');
-    final hash = await _git(args, workingDirectory: directory);
+    final hash = await _git(args, workingDirectory: dirPath);
 
     return hash.split('\n')[0].trim();
   }
