@@ -10,14 +10,14 @@ import 'package:logging/logging.dart';
 import 'git_repository.dart';
 import 'generate_doc.dart';
 import 'options.dart';
-import 'util.dart';
 
 final Logger _logger = new Logger('update_doc_repo');
 
 class GitDocumentationUpdater implements DocumentationUpdater {
   final GitRepositoryFactory _gitFactory;
-  final String _angularRepositoryUri =
+  final String _webdevRepoUri =
       'https://github.com/${options.user}/site-webdev';
+  GitRepository webdevRepo;
 
   GitDocumentationUpdater(this._gitFactory);
 
@@ -25,7 +25,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
   Future<int> updateMatchingRepo(RegExp re, {bool push, bool clean}) async {
     int updateCount = 0;
     try {
-      var angularRepository = await _cloneAngularRepoIntoTmp();
+      var angularRepository = await _cloneWebdevRepoIntoWorkDir();
       final files = await new Directory(angularRepository.directory)
           .list(recursive: true)
           .where(
@@ -60,35 +60,48 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     print('Processing $exampleName');
 
     var updated = false;
+    String commitMessage;
+
     try {
-      var angularRepository = await _cloneAngularRepoIntoTmp();
+      var angularRepository = await _cloneWebdevRepoIntoWorkDir();
 
-      // Clone [outRepository] into tmp folder.
+      // Clone [outRepository] into working directory.
       final outPath = p.join(workDir.path, exampleName);
-      final outRepo = _gitFactory.create(outPath);
-      await outRepo.cloneFrom(outRepositoryUri);
+      final outRepo = _gitFactory.create(outPath, options.branch);
+      if (outRepo.dir.existsSync()) {
+        _logger.fine(
+            '  > repo exists; assuming source files have already been updated ($outPath)');
+        outRepo.checkout();
+      } else {
+        await outRepo.cloneFrom(outRepositoryUri);
 
-      // Remove existing content as we will generate an updated version.
-      await outRepo.deleteAll();
+        // Remove existing content as we will generate an updated version.
+        await outRepo.delete();
 
-      _logger.fine('Generating updated example application into $outPath.');
-      final exampleFolder = p.join(angularRepository.directory, examplePath);
-      await assembleDocumentationExample(
-          new Directory(exampleFolder), new Directory(outRepo.directory),
-          angularDirectory: new Directory(angularRepository.directory),
-          webdevNgPath: examplePath);
+        _logger.fine('Generating updated example application into $outPath.');
+        final exampleFolder = p.join(angularRepository.directory, examplePath);
+        await assembleDocumentationExample(
+            new Directory(exampleFolder), new Directory(outRepo.directory),
+            angularDirectory: new Directory(angularRepository.directory),
+            webdevNgPath: examplePath);
 
-      final commitMessage =
-          await _createCommitMessage(angularRepository, examplePath);
+        commitMessage =
+            await _createCommitMessage(angularRepository, examplePath);
 
-      updated = await __handleUpdate(
-          () => _update(outRepo, commitMessage, push),
-          'Example source changed',
-          exampleName,
-          outRepo.branch);
+        updated = await __handleUpdate(
+            () => _update(outRepo, commitMessage, push),
+            'Example source changed',
+            exampleName,
+            outRepo.branch);
+      }
 
       if (updated || options.forceBuild) {
         print('  Building app' + (options.forceBuild ? ' (force build)' : ''));
+
+        if (commitMessage == null)
+          commitMessage =
+              await _createCommitMessage(angularRepository, examplePath);
+
         updated = await __handleUpdate(
                 () => _updateGhPages(outRepo, exampleName, commitMessage, push),
                 'App files have changed',
@@ -137,20 +150,14 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     }
   }
 
-  /// Clone angular repo into tmp folder if it is not already present.
-  Future _cloneAngularRepoIntoTmp() async {
-    dryRunMkDir(workDir.path);
-
-    // Clone content of Angular docs repo into tmp folder.
-    final tmpAngularDocsRepoPath = p.join(workDir.path, 'site_webdev_ng');
-    final angularRepository =
-        _gitFactory.create(tmpAngularDocsRepoPath, options.branch);
-
-    // Only clone into the repository if the directory is not already there.
-    if (!new Directory(angularRepository.directory).existsSync()) {
-      await angularRepository.cloneFrom(_angularRepositoryUri);
+  /// Clone webdev repo into working directory, if it is not already present.
+  Future _cloneWebdevRepoIntoWorkDir() async {
+    if (webdevRepo == null) {
+      final webdevRepoPath = p.join(workDir.path, 'site_webdev_ng');
+      webdevRepo = _gitFactory.create(webdevRepoPath, options.branch);
+      await webdevRepo.cloneFrom(_webdevRepoUri);
     }
-    return angularRepository;
+    return webdevRepo;
   }
 
   /// Generates a commit message containing the commit hash of the Angular docs
@@ -162,30 +169,37 @@ class GitDocumentationUpdater implements DocumentationUpdater {
 
     return 'Sync with $short\n\n'
         'Synced with dart-lang/site-webdev ${repo.branch} branch, commit $short:\n'
-        '$_angularRepositoryUri/tree/$long/$webdevNgPath';
+        '$_webdevRepoUri/tree/$long/$webdevNgPath';
   }
 
   /// Updates the branch with the latest cleaned example application code.
   Future _update(GitRepository repo, String message, bool push) async {
-    await repo.update(message: message);
+    await repo.update(commitMessage: message);
     if (push) {
-      await repo.pushCurrent();
+      await repo.push();
     } else {
       _logger.fine('NOT Pushing changes for ${repo.directory}.');
     }
   }
 
-  /// Updates the gh-pages branch with the latest compiled code.
-  Future _updateGhPages(
-      GitRepository repo, String name, String commitMessage, bool push) async {
-    // Generate the application assets into the gh-pages branch.
-    String applicationAssetsPath =
-        await generateApplication(new Directory(repo.directory), name);
-    await repo.updateGhPages(applicationAssetsPath, commitMessage);
+  /// Updates the gh-pages branch with the latest built app.
+  Future _updateGhPages(GitRepository exampleRepo, String exampleName,
+      String commitMessage, bool push) async {
+    await buildApp(exampleRepo.dir);
+
+    final pathToBuiltApp = p.join(exampleRepo.dir.path, 'build/web');
+    var href = '/$exampleName/' +
+        (options.ghPagesAppDir.isEmpty ? '' : '${options.ghPagesAppDir}/');
+    await adjustBaseHref(pathToBuiltApp, href);
+
+    excludeTmpBuildFiles(exampleRepo.dir);
+
+    await exampleRepo.updateGhPages(pathToBuiltApp, commitMessage);
     if (push) {
-      await repo.pushGhPages();
+      await exampleRepo.push('gh-pages');
     } else {
-      _logger.fine('NOT Pushing changes to gh-pages for ${repo.directory}.');
+      _logger.info(
+          'NOT Pushing changes to gh-pages for ${exampleRepo.directory}.');
     }
   }
 }

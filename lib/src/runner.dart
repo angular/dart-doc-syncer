@@ -10,19 +10,22 @@ final Logger _logger = new Logger('runner');
 Exception newException(String msg) => new Exception(msg);
 
 Future<ProcessResult> run(String executable, List<String> arguments,
-    {String workingDirectory, Exception mkException(String msg): newException}) async {
-  var message = "  > $executable ${arguments.join(' ')}";
-  if (workingDirectory != null) message += " ($workingDirectory)";
-  _logger.finest(message);
+    {String workingDirectory,
+    bool isException(ProcessResult r),
+    Exception mkException(String msg): newException}) async {
+  var cmd = "$executable ${arguments.join(' ')}";
+  if (workingDirectory != null) cmd += ' ($workingDirectory)';
+  _logger.finest('  > $cmd');
 
   if (!options.dryRun) {
-    final r =
-        await Process.run(executable, arguments, workingDirectory: workingDirectory);
-    if (r.exitCode != 0) {
-      final message = r.stderr.isEmpty ? r.stdout : r.stderr;
-      throw mkException(message);
-    }
-    return r;
+    final r = await Process.run(executable, arguments,
+        workingDirectory: workingDirectory);
+    if (r.exitCode == 0 && (isException == null || !isException(r))) return r;
+    _logger.info('ERROR running: $cmd. Here are stderr and stdout:');
+    _logger.info(r.stderr);
+    _logger.info('\n' + '=' * 50 + '\nSTDOUT:\n');
+    _logger.info(r.stdout);
+    throw mkException(r.stderr.isEmpty ? r.stdout : r.stderr);
   }
 
   if (executable == 'git' && arguments[0] == 'clone') {

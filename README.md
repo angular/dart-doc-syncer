@@ -32,27 +32,33 @@ Syncs example applications.
 
 Usage: dart_doc_syncer [options] [<exampleName> | <examplePath> <exampleRepo>]
 
--h, --help           show this usage information
--b, --branch         <branch-name>
-                     git branch to fetch examples from
-                     (defaults to "master")
+-h, --help                show this usage information
+-b, --branch              <branch-name>
+                          git branch to fetch webdev and examples from
+                          (defaults to "master")
 
--n, --dry-run        show which commands would be executed but make (almost) no changes;
-                     only the temporary directory will be created
+-n, --dry-run             show which commands would be executed but make (almost) no changes;
+                          only the temporary directory will be created
 
--f, --force-build    forces build of example app when sources have not changed
--k, --keep-tmp       do not delete temporary working directory once done
--p, --[no-]push      prepare updates and push to example repo
-                     (defaults to on)
+-f, --force-build         forces build of example app when sources have not changed
+-g, --gh-pages-app-dir    <path>
+                          directory in which the generated example apps will be placed (gh-pages branch)
 
--m, --match          <dart-regexp>
-                     sync all examples having a data file (.docsync.json)
-                     and whose repo path matches the given regular expression;
-                     use "." to match all
+-k, --keep-tmp            do not delete temporary working directory once done
+-p, --[no-]push           prepare updates and push to example repo
+                          (defaults to on)
 
--u, --user           <user-id>
-                     GitHub id of repo to fetch examples from
-                     (defaults to "angular")
+-m, --match               <dart-regexp>
+                          sync all examples having a data file (.docsync.json)
+                          and whose repo path matches the given regular expression;
+                          use "." to match all
 
--v, --verbose        
+-u, --user                <user-id>
+                          GitHub id of repo to fetch examples from
+                          (defaults to "dart-lang")
+
+-v, --verbose
+-w, --work-dir            <path>
+                          path to a working directory;
+                          when unspecified a system-generated path to a temporary directory is used
 ```
