@@ -29,6 +29,7 @@ class GitRepository {
     dryRunMkDir(directory);
     if (dir.existsSync()) {
       _logger.fine('  > clone already exists for $directory');
+      await checkout();
       return;
     }
     try {

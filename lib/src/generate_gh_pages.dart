@@ -24,10 +24,19 @@ Future adjustBaseHref(String pathToWebFolder, String href) async {
           content.replaceFirst(baseHrefEltOrScript, appBaseHref));
 }
 
+final errorOrFailure = new RegExp('^(error|fail)', caseSensitive: false);
+
+bool isException(ProcessResult r) {
+  final stderr = r.stderr;
+  return stderr is! String || stderr.contains(errorOrFailure);
+}
+
 Future buildApp(Directory example) async {
   _logger.fine("Building ${example.path}");
-  await Process.run('pub', ['get'], workingDirectory: example.path);
-  await Process.run('pub', ['build'], workingDirectory: example.path);
+  await Process.run('pub', ['get'],
+      workingDirectory: example.path, isException: isException);
+  await Process.run('pub', ['build'],
+      workingDirectory: example.path, isException: isException);
 }
 
 const filesToExclude = '''
