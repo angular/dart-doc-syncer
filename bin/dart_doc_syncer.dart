@@ -44,13 +44,13 @@ Future main(List<String> _args) async {
   }
 
   final documentation = new DocumentationUpdater();
-  print('Temporary working directory: ${workDir.path}');
+  print('Working directory: ${workDir.path}');
   if (options.match == null) {
     await documentation.updateRepository(path, repositoryUri,
-        clean: !options.keepTmp, exampleName: exampleName, push: options.push);
+        clean: options.workDir == null && !options.keepTmp, exampleName: exampleName, push: options.push);
     print('Done updating $repositoryUri');
   } else {
     await documentation.updateMatchingRepo(options.match,
-        clean: !options.keepTmp, push: options.push);
+        clean: options.workDir == null && !options.keepTmp, push: options.push);
   }
 }

@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 import 'runner.dart' as Process; // TODO(chalin) tmp name to avoid code changes
+import 'options.dart';
 import 'util.dart';
 
 class GitRepositoryFactory {
@@ -14,48 +16,70 @@ class GitRepositoryFactory {
 class GitRepository {
   final _logger = new Logger('GitRepository');
   final String branch;
-  /// Local path to directory where this repo will reside.
-  final String directory;
 
-  GitRepository(this.directory, this.branch);
+  /// Local path to directory where this repo will reside.
+  final String directory; // FIXME: rename to dirPath later
+  final Directory dir;
+
+  GitRepository(this.directory, this.branch) : dir = new Directory(directory);
 
   /// Clones the git [repository]'s [branch] into this [directory].
   Future cloneFrom(String repository) async {
     _logger.fine('Cloning $repository ($branch) into $directory.');
     dryRunMkDir(directory);
-    await _git(['clone', '-b', branch, repository, directory]);
+    if (dir.existsSync()) {
+      _logger.fine('  > clone already exists for $directory');
+      return;
+    }
+    try {
+      await _git(['clone', '-b', branch, repository, directory]);
+      return;
+    } catch (e) {
+      // if (!e.toString().contains('Remote branch $branch not found'))
+      throw e;
+    }
+    // Disable example repo branch creation for now. Handle it outside the dds.
+    // _logger.info('Branch $branch does not exist, creating it from master');
+    // await _git(['clone', '-b', 'master', repository, directory]);
+    // await _git(['checkout', '-b', branch], workingDirectory: directory);
   }
 
-  /// Deletes all files in this git [directory].
-  Future deleteAll() async {
-    _logger.fine('Deleting all the repository content in $directory.');
-    await _git(['rm', '*'], workingDirectory: directory);
+  Future checkout() async {
+    _logger.fine('Checkout $branch.');
+    await _git(['checkout', branch], workingDirectory: directory);
   }
 
-  /// Stages, commits with [message] and pushes local changes to origin for
-  /// [directory].
-  Future pushCurrent() async {
-    _logger.fine('Pushing changes for $directory.');
-    await _git(['push'], workingDirectory: directory);
+  /// Delete all files under [directory]/subdir.
+  Future delete([String subdir = '']) async {
+    final dir = p.join(directory, subdir);
+    _logger.fine('Git rm * under $dir.');
+    if (new Directory(dir).existsSync()) {
+      try {
+        await _git(['rm', '-r', '*'], workingDirectory: dir);
+        return;
+      } catch (e) {
+        if (!e.toString().contains('did not match any files')) throw e;
+      }
+    }
+    _logger.fine('  > No matching files; probably already removed ($dir)');
   }
 
-  /// Stages, commits with [message] and pushes local changes to origin for
-  /// [directory].
-  Future pushGhPages() async {
-    _logger.fine('Pushing changes to gh-pages for $directory.');
-    await _git(['push', '--set-upstream', 'origin', 'gh-pages'],
+  /// Push given branch, or [branch] to origin from [directory].
+  Future push([String _branch]) async {
+    final branch = _branch ?? this.branch;
+    _logger.fine('Pushing $branch from $directory.');
+    await _git(['push', '--set-upstream', 'origin', branch],
         workingDirectory: directory);
   }
 
-  Future update({String message}) async {
-    _logger.fine('Checkout $branch.');
-    await _git(['checkout', branch], workingDirectory: directory);
+  Future update({String commitMessage}) async {
+    await checkout();
 
     _logger.fine('Staging local changes for $directory.');
     await _git(['add', '.'], workingDirectory: directory);
 
     _logger.fine('Committing changes for $directory.');
-    await _git(['commit', '-m', message], workingDirectory: directory);
+    await _git(['commit', '-m', commitMessage], workingDirectory: directory);
   }
 
   /// Clones the git [repository] into this [directory].
@@ -72,14 +96,18 @@ class GitRepository {
           workingDirectory: directory);
     }
 
-    // Remove all files from old working tree.
-    _logger.fine('Remove existing files from old working tree in $directory.');
-    await _git(['add', '.'], workingDirectory: directory);
-    await _git(['rm', '-rf', '*'], workingDirectory: directory);
+    await delete(options.ghPagesAppDir);
 
     // Copy the application assets into this folder.
     _logger.fine('Copy from $sourcePath to $directory.');
-    await Process.run('cp', ['-a', p.join(sourcePath, '.'), directory]);
+    final dest = p.join(directory, options.ghPagesAppDir);
+    await Process.run('cp', ['-a', p.join(sourcePath, '.'), dest]);
+
+    await Process.run(
+        'find',
+        [dest]..addAll(
+            '( -name *.ng_*.json -o -name *.ng_placeholder ) -exec rm -f {} +'
+                .split(' ')));
 
     _logger.fine('Committing gh-pages changes for $directory.');
     await _git(['add', '.'], workingDirectory: directory);

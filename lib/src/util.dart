@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 
 import 'options.dart';
 
@@ -16,10 +17,10 @@ final Logger _logger = new Logger('update_doc_repo');
 
 /// Create directory only during dry runs.
 Future dryRunMkDir(String path) async {
-  if (!options.dryRun) return new Future.value();
-  _logger.fine('[dryrun] mkdir $path.');
   var dir = new Directory(path);
-  return await dir.create();
+  if (!options.dryRun || dir.existsSync()) return new Future.value();
+  _logger.fine('[dryrun] mkdir $path.');
+  return dir.create();
 }
 
 /// Read [path] as a string, apply [transformer] and write back the result.
@@ -30,3 +31,6 @@ Future<Null> transformFile(String path, transformer(dynamic content)) async {
   File file = new File(path);
   await file.writeAsString(transformer(await file.readAsString()));
 }
+
+/// Like path.join(...), but first filters out null and empty path parts.
+String pathJoin(List<String> pathParts) => p.joinAll(pathParts.where((p) => p != null && p.isNotEmpty));

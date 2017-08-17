@@ -5,37 +5,45 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 import 'runner.dart' as Process; // TODO(chalin) tmp name to avoid code changes
-import 'options.dart';
 import 'util.dart';
 
 final Logger _logger = new Logger('generate_gh_pages');
 
-/// Returns the path to the folder where the application assets have been
-/// generated.
-Future<String> generateApplication(
-    Directory example, String exampleName) async {
-  final applicationPath = p.join(workDir.path, '${exampleName}_app');
-
-  // Copy the application code into a separate folder.
-  await Process.run('cp', ['-a', p.join(example.path, '.'), applicationPath]);
-
-  _logger
-      .fine('Adjust <base href> in index.html so that app runs under gh-pages');
+Future adjustBaseHref(String pathToWebFolder, String href) async {
+  _logger.fine('Adjust index.html <base href> so that app runs under gh-pages');
 
   // If the `index.html` either statically or dynamically sets <base href>
   // replace that element by a <base href> appropriate for serving via GH pages.
   final baseHrefEltOrScript = new RegExp(r'<base href="/">|'
       r'<script>(\s|[^<])+<base href(\s|[^<]|<[^/])+</script>');
 
-  final appBaseHref = '<base href="/$exampleName/">';
+  final appBaseHref = '<base href="$href">';
   await transformFile(
-      p.join(applicationPath, 'web/index.html'),
+      p.join(pathToWebFolder, 'index.html'),
       (String content) =>
           content.replaceFirst(baseHrefEltOrScript, appBaseHref));
+}
 
-  _logger.fine("Build the application assets into the 'build' folder");
-  await Process.run('pub', ['get'], workingDirectory: applicationPath);
-  await Process.run('pub', ['build'], workingDirectory: applicationPath);
+Future buildApp(Directory example) async {
+  _logger.fine("Building ${example.path}");
+  await Process.run('pub', ['get'], workingDirectory: example.path);
+  await Process.run('pub', ['build'], workingDirectory: example.path);
+}
 
-  return p.join(applicationPath, 'build/web');
+const filesToExclude = '''
+.packages
+.pub/
+build/
+pubspec.lock
+''';
+
+/// Files created when the app was build should be ignored.
+void excludeTmpBuildFiles(Directory exampleRepo) {
+  final excludeFilePath = p.join(exampleRepo.path, '.git', 'info', 'exclude');
+  final excludeFile = new File(excludeFilePath);
+  final excludeFileAsString = excludeFile.readAsStringSync();
+  if (!excludeFileAsString.contains(filesToExclude)) {
+    _logger.fine('  > Adding tmp build files to $excludeFilePath');
+    excludeFile.writeAsStringSync(excludeFileAsString + filesToExclude);
+  }
 }

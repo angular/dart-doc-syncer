@@ -18,7 +18,7 @@ Future<ProcessResult> run(String executable, List<String> arguments,
   if (!options.dryRun) {
     final r =
         await Process.run(executable, arguments, workingDirectory: workingDirectory);
-    if (r.exitCode != 0) {
+    if (r.exitCode != 0 || r.stderr.isNotEmpty) {
       final message = r.stderr.isEmpty ? r.stdout : r.stderr;
       throw mkException(message);
     }
