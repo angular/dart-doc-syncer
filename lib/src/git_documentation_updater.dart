@@ -26,7 +26,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     int updateCount = 0;
     try {
       var angularRepository = await _cloneWebdevRepoIntoWorkDir();
-      final files = await new Directory(angularRepository.directory)
+      final files = await new Directory(angularRepository.dirPath)
           .list(recursive: true)
           .where(
               (e) => e is File && p.basename(e.path) == exampleConfigFileName)
@@ -79,10 +79,10 @@ class GitDocumentationUpdater implements DocumentationUpdater {
         await outRepo.delete();
 
         _logger.fine('Generating updated example application into $outPath.');
-        final exampleFolder = p.join(angularRepository.directory, examplePath);
+        final exampleFolder = p.join(angularRepository.dirPath, examplePath);
         await assembleDocumentationExample(
-            new Directory(exampleFolder), new Directory(outRepo.directory),
-            angularDirectory: new Directory(angularRepository.directory),
+            new Directory(exampleFolder), new Directory(outRepo.dirPath),
+            angularDirectory: new Directory(angularRepository.dirPath),
             webdevNgPath: examplePath);
 
         commitMessage =
@@ -178,7 +178,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     if (push) {
       await repo.push();
     } else {
-      _logger.fine('NOT Pushing changes for ${repo.directory}.');
+      _logger.fine('NOT Pushing changes for ${repo.dirPath}.');
     }
   }
 
@@ -199,7 +199,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
       await exampleRepo.push('gh-pages');
     } else {
       _logger.info(
-          'NOT Pushing changes to gh-pages for ${exampleRepo.directory}.');
+          'NOT Pushing changes to gh-pages for ${exampleRepo.dirPath}.');
     }
   }
 }
