@@ -129,8 +129,10 @@ void validateAndNormalizeGhPagesAppDir() {
   // FIXME: revert temporary change once all scripts have been updated. Also make '' the new default.
   // Temporarily making --gh-pages-app-dir mandatory.
   if (options.ghPagesAppDir == null)
-    printUsageAndExit("Option --gh-pages-app-dir is currently mandatory. "
-        "Use '' for an empty path");
+    printUsageAndExit("Option --gh-pages-app-dir is currently mandatory, "
+        "and it usually matches the major Angular version number being used "
+        "by the example apps; e.g., --gh-pages-app-dir=4. "
+        "Use '' if you reall mean to use an empty path");
 
   if (options.ghPagesAppDir.startsWith('/'))
     printUsageAndExit("Invalid --gh-pages-app-dir '${options.ghPagesAppDir}'; "
