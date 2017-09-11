@@ -6,10 +6,10 @@ import 'package:dart_doc_syncer/documentation_updater.dart';
 import 'package:dart_doc_syncer/example2uri.dart';
 import 'package:dart_doc_syncer/options.dart';
 
-/// Syncs an example application living in the Angular docs repository to a
+/// Syncs an example app from the site-webdev repository to a
 /// dedicated repository that will contain a generated cleaned-up version.
 ///
-///    dart_doc_syncer [-h|options] [<exampleName> | <examplePath> <exampleRepo>]
+///    dart_doc_syncer [-h|options] [<examplePath> [<exampleRepo>]]
 Future main(List<String> _args) async {
   var args = processArgs(_args);
   Logger.root.level = options.verbose ? Level.ALL : Level.WARNING;
@@ -25,21 +25,17 @@ Future main(List<String> _args) async {
     case 0:
       if (options.match == null)
         printUsageAndExit('No examples specified; name example or use --match');
-        // #NotReached
+      // #NotReached
       break;
     case 1:
-      exampleName = args[0];
-      var e2u = new Example2Uri(exampleName);
-      path = e2u.path;
-      repositoryUri = e2u.repositoryUri;
-      break;
     case 2:
-      path = args[0];
-      repositoryUri = args[1];
-      exampleName = getExampleName(path);
+      final e2u = new Example2Uri(args[0]);
+      exampleName = e2u.exampleName;
+      path = e2u.path;
+      repositoryUri = args.length == 1 ? e2u.repositoryUri : args[1];
       break;
     default:
-      printUsageAndExit("Too many arguments (${args.length})");
+      printUsageAndExit("Unrecognized arguments");
     // #NotReached
   }
 
@@ -47,7 +43,9 @@ Future main(List<String> _args) async {
   print('Working directory: ${workDir.path}');
   if (options.match == null) {
     await documentation.updateRepository(path, repositoryUri,
-        clean: options.workDir == null && !options.keepTmp, exampleName: exampleName, push: options.push);
+        clean: options.workDir == null && !options.keepTmp,
+        exampleName: exampleName,
+        push: options.push);
     print('Done updating $repositoryUri');
   } else {
     await documentation.updateMatchingRepo(options.match,

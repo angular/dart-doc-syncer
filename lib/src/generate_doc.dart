@@ -16,8 +16,7 @@ final String _defaultAssetsPath = p.join(_basePath, "../default_assets");
 
 const whitelist = const ['.css', '.dart', '.html', '.yaml'];
 
-/// Generates a clean documentation application folder based on the raw content
-/// at [snaphsot].
+/// Generates a clean app folder based on the raw content in [snaphsot].
 Future assembleDocumentationExample(Directory snapshot, Directory out,
     {Directory angularDirectory, String webdevNgPath}) async {
   out.createSync(recursive: false);
@@ -40,14 +39,8 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   await Process.run('find',
       [out.path]..addAll('( $targetFiles ) -exec rm -f {} +'.split(' ')));
 
-  // Add the common styles file.
-  final boilerPlatePath =
-      p.join(angularDirectory.path, docExampleDirRoot, '_boilerplate');
-  await Process.run('cp', [
-    p.join(boilerPlatePath, 'favicon.png'),
-    p.join(boilerPlatePath, 'styles.css'),
-    p.join(out.path, 'web')
-  ]);
+  final webDir = new Directory(p.join(out.path, 'web'));
+  _addBoilerplateFiles(snapshot.parent, webDir);
 
   // Clean the application code
   _logger.fine('Removing doc tags in ${out.path}.');
@@ -61,26 +54,55 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   await Process.run('dartfmt', ['-w', p.absolute(out.path)]);
 }
 
+void _addBoilerplateFiles(Directory exDir, Directory target) {
+  final boilerPlateDir = _findBoilerPlateDir(exDir);
+  if (boilerPlateDir == null) return;
+  for (var fsEntity in boilerPlateDir.listSync(followLinks: false)) {
+    // Our ng/doc boilerplate contains .json files use for e2e testing;
+    // ignore those files.
+    if (p.basename(fsEntity.path).startsWith('.')) continue;
+    if (fsEntity is File && p.extension(fsEntity.path) != '.json') {
+      fsEntity.copySync(p.join(target.path, p.basename(fsEntity.path)));
+      _logger.finer('  Copying boilerplate file ${fsEntity.path}');
+    }
+  }
+}
+
+Directory _findBoilerPlateDir(Directory dir) {
+  final entities = dir.listSync(followLinks: false);
+  for (var fsEntity in entities) {
+    if (fsEntity is! Directory) continue;
+    if (p.basename(fsEntity.path) == '_boilerplate') return fsEntity;
+  }
+  final parent = dir.parent;
+  return parent == null || p.basename(parent.path) == docExampleDirRoot
+      ? null
+      : _findBoilerPlateDir(parent);
+}
+
 /// Rewrites all files under the [path] directory by filtering out the
 /// documentation tags.
 Future _removeDocTagsFromApplication(String path) async {
   if (Process.options.dryRun) return new Future.value(null);
 
   final files = await new Directory(path)
-      .list(recursive: true)
+      .list(recursive: true, followLinks: false)
       .where((e) => e is File)
       .toList();
   return Future.wait(files.map(_removeDocTagsFromFile));
 }
 
 /// Rewrites the [file] by filtering out the documentation tags.
-Future _removeDocTagsFromFile(File file) async {
-  if (whitelist.every((String e) => !file.path.endsWith(e))) return null;
+Future _removeDocTagsFromFile(FileSystemEntity file) async {
+  if (file is File) {
+    if (whitelist.every((String e) => !file.path.endsWith(e))) return null;
 
-  final content = await file.readAsString();
-  final cleanedContent = removeDocTags(content);
+    final content = await file.readAsString();
+    final cleanedContent = removeDocTags(content);
 
-  if (content == cleanedContent) return null;
+    if (content == cleanedContent) return null;
 
-  return file.writeAsString(cleanedContent);
+    return file.writeAsString(cleanedContent);
+  }
+  return null;
 }

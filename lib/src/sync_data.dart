@@ -9,6 +9,7 @@ import 'options.dart';
 /// README file.
 class SyncData {
   final String name; // e.g., 'architecture'
+  final String path; // e.g., 'ng/doc/architecture'
   final String title; // e.g. 'Architecture Overview'
   final String docPart; // e.g. 'guide' (from 'guide/architecture')
   final String docHref;
@@ -16,8 +17,7 @@ class SyncData {
   final String liveExampleHref;
   final List<String> links;
 
-  String get id =>
-      p.join(docPart, name); // e.g. 'quickstart' or 'guide/architecture'
+  String get id => path;
 
   SyncData(
       {String name: '',
@@ -29,17 +29,18 @@ class SyncData {
       String repoHref: '',
       String path})
       : this.name = name.isEmpty ? getExampleName(path) : name,
+        this.path = path,
         this.docPart = docPart,
         this.docHref = docHref.isEmpty
-            ? p.join(dartDocUriPrefix, docPart, '${getExampleName(path)}')
+            ? p.join(dartDocHostUri, docPart, getExampleName(path))
             : docHref.startsWith('http')
                 ? docHref
-                : p.join(dartDocUriPrefix, docPart, docHref),
-        this.liveExampleHref = liveExampleHref.isEmpty
-            ? p.join(exampleHostUriPrefix, getExampleName(path))
-            : liveExampleHref.startsWith('http')
+                : p.join(dartDocHostUri, docPart, docHref),
+        this.liveExampleHref = liveExampleHref == null
+            ? p.join(dartDocHostUri, path)
+            : liveExampleHref.startsWith('http') || liveExampleHref.isEmpty
                 ? liveExampleHref
-                : p.join(exampleHostUriPrefix, liveExampleHref),
+                : p.join(dartDocHostUri, liveExampleHref),
         this.repoHref = repoHref.isEmpty
             ? '//github.com/dart-lang/site-webdev/tree/master/' + path
             : repoHref;
@@ -52,7 +53,7 @@ class SyncData {
         docPart: data['docPart'] ?? '',
         docHref: data['docHref'] ?? '',
         repoHref: data['repoHref'] ?? '',
-        liveExampleHref: data['liveExampleHref'] ?? '',
+        liveExampleHref: data['liveExampleHref'],
         links: data['links'] ?? [],
         path: path);
   }

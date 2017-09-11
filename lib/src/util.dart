@@ -33,4 +33,14 @@ Future<Null> transformFile(String path, transformer(dynamic content)) async {
 }
 
 /// Like path.join(...), but first filters out null and empty path parts.
-String pathJoin(List<String> pathParts) => p.joinAll(pathParts.where((p) => p != null && p.isNotEmpty));
+String pathJoin(List<String> pathParts) =>
+    p.joinAll(pathParts.where((p) => p != null && p.isNotEmpty));
+
+String stripPathPrefix(String prefix, String path) {
+  if (prefix == null || prefix.isEmpty) return path;
+  if (path == prefix) return '.';
+  final normalizedPrefix = prefix.endsWith('/') ? prefix : '$prefix/';
+  assert(path.startsWith(normalizedPrefix),
+      '"$path" should start with "$normalizedPrefix"');
+  return path.substring(normalizedPrefix.length);
+}

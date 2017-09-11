@@ -21,10 +21,10 @@ Future<ProcessResult> run(String executable, List<String> arguments,
     final r = await Process.run(executable, arguments,
         workingDirectory: workingDirectory);
     if (r.exitCode == 0 && (isException == null || !isException(r))) return r;
-    _logger.info('ERROR running: $cmd. Here are stderr and stdout:');
-    _logger.info(r.stderr);
-    _logger.info('\n' + '=' * 50 + '\nSTDOUT:\n');
-    _logger.info(r.stdout);
+    // _logger.info('ERROR running: $cmd. Here are stderr and stdout:');
+    // _logger.info(r.stderr);
+    // _logger.info('\n' + '=' * 50 + '\nSTDOUT:\n');
+    // _logger.info(r.stdout);
     throw mkException(r.stderr.isEmpty ? r.stdout : r.stderr);
   }
 
