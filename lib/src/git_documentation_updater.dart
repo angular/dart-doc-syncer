@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'git_repository.dart';
 import 'generate_doc.dart';
 import 'options.dart';
+import 'util.dart';
 
 final Logger _logger = new Logger('update_doc_repo');
 
@@ -25,22 +26,23 @@ class GitDocumentationUpdater implements DocumentationUpdater {
   Future<int> updateMatchingRepo(RegExp re, {bool push, bool clean}) async {
     int updateCount = 0;
     try {
-      var angularRepository = await _cloneWebdevRepoIntoWorkDir();
+      final angularRepository = await _cloneWebdevRepoIntoWorkDir();
       final files = await new Directory(angularRepository.dirPath)
           .list(recursive: true)
           .where(
               (e) => e is File && p.basename(e.path) == exampleConfigFileName)
           .toList();
       for (var e in files) {
-        var dartDir = p.dirname(e.path);
-        var exampleName = getExampleName(dartDir);
-        if (re.hasMatch(e.path)) {
-          var e2u = new Example2Uri(exampleName);
+        var dartDir =
+            p.dirname(e.path).substring(angularRepository.dirPath.length);
+        if (dartDir.startsWith('/')) dartDir = dartDir.substring(1);
+        final e2u = new Example2Uri(dartDir);
+        if (re.hasMatch(dartDir)) {
           var updated = await updateRepository(e2u.path, e2u.repositoryUri,
               clean: clean, push: push);
           if (updated) updateCount++;
         } else if (options.verbose) {
-          print('Skipping $exampleName');
+          print('Skipping ${e2u.path}');
         }
       }
     } on GitException catch (e) {
@@ -53,11 +55,14 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     return updateCount;
   }
 
+  /// [rrrExamplePath] is a repo-root-relative example path, e.g.,
+  /// 'examples/ng/doc/quickstart'
   @override
-  Future<bool> updateRepository(String examplePath, String outRepositoryUri,
+  Future<bool> updateRepository(String rrrExamplePath, String outRepositoryUri,
       {String exampleName: '', bool push: true, bool clean: true}) async {
-    if (exampleName.isEmpty) exampleName = getExampleName(examplePath);
-    print('Processing $exampleName');
+    // final examplePath = getExamplePath(rrrExamplePath);
+    if (exampleName.isEmpty) exampleName = getExampleName(rrrExamplePath);
+    print('Processing $rrrExamplePath');
 
     var updated = false;
     String commitMessage;
@@ -78,15 +83,15 @@ class GitDocumentationUpdater implements DocumentationUpdater {
         // Remove existing content as we will generate an updated version.
         await outRepo.delete();
 
-        _logger.fine('Generating updated example application into $outPath.');
-        final exampleFolder = p.join(angularRepository.dirPath, examplePath);
+        _logger.fine('Generating updated example app(s) into $outPath.');
+        final exampleFolder = p.join(angularRepository.dirPath, rrrExamplePath);
         await assembleDocumentationExample(
             new Directory(exampleFolder), new Directory(outRepo.dirPath),
             angularDirectory: new Directory(angularRepository.dirPath),
-            webdevNgPath: examplePath);
+            webdevNgPath: rrrExamplePath);
 
         commitMessage =
-            await _createCommitMessage(angularRepository, examplePath);
+            await _createCommitMessage(angularRepository, rrrExamplePath);
 
         updated = await __handleUpdate(
             () => _update(outRepo, commitMessage, push),
@@ -96,11 +101,13 @@ class GitDocumentationUpdater implements DocumentationUpdater {
       }
 
       if (updated || options.forceBuild) {
-        print('  Building app' + (options.forceBuild ? ' (force build)' : ''));
+        print(updated
+            ? '  Changes to sources detected'
+            : '  Force build requested');
 
         if (commitMessage == null)
           commitMessage =
-              await _createCommitMessage(angularRepository, examplePath);
+              await _createCommitMessage(angularRepository, rrrExamplePath);
 
         updated = await __handleUpdate(
                 () => _updateGhPages(outRepo, exampleName, commitMessage, push),
@@ -128,12 +135,13 @@ class GitDocumentationUpdater implements DocumentationUpdater {
       await update();
       print("  $infoMsg: updated $exampleName ($branch)");
       updated = true;
-    } catch (e) {
+    } catch (e, st) {
       var es = e.toString();
       if (es.contains(_errorOrFatal)) {
         throw e; // propagate serious errors
       } else if (!es.contains('nothing to commit')) {
-        print("** $es");
+        print(es);
+        _logger.finest(st);
       } else {
         print("  $exampleName ($branch): nothing to commit");
       }
@@ -151,7 +159,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
   }
 
   /// Clone webdev repo into working directory, if it is not already present.
-  Future _cloneWebdevRepoIntoWorkDir() async {
+  Future<GitRepository> _cloneWebdevRepoIntoWorkDir() async {
     if (webdevRepo == null) {
       final webdevRepoPath = p.join(workDir.path, 'site_webdev_ng');
       webdevRepo = _gitFactory.create(webdevRepoPath, options.branch);
@@ -182,24 +190,63 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     }
   }
 
-  /// Updates the gh-pages branch with the latest built app.
+  /// Updates the gh-pages branch with the latest built app(s).
   Future _updateGhPages(GitRepository exampleRepo, String exampleName,
       String commitMessage, bool push) async {
-    await buildApp(exampleRepo.dir);
+    final Iterable<Directory> appRoots = _getAppRoots(exampleRepo.dir);
 
-    final pathToBuiltApp = p.join(exampleRepo.dir.path, 'build/web');
-    var href = '/$exampleName/' +
-        (options.ghPagesAppDir.isEmpty ? '' : '${options.ghPagesAppDir}/');
-    await adjustBaseHref(pathToBuiltApp, href);
+    if (appRoots.length == 0)
+      throw new Exception('No pubspecs found under ${exampleRepo.dirPath}');
 
-    excludeTmpBuildFiles(exampleRepo.dir);
+    final relativeAppRoots =
+        appRoots.map((d) => stripPathPrefix(exampleRepo.dirPath, d.path));
+    excludeTmpBuildFiles(exampleRepo.dir, relativeAppRoots);
 
-    await exampleRepo.updateGhPages(pathToBuiltApp, commitMessage);
+    for (var appRoot in appRoots) {
+      if (appRoots.length > 1)
+        print('  Building app ${stripPathPrefix(workDir.path, appRoot.path)}');
+      await _buildApp(appRoot, exampleName);
+    }
+
+    await exampleRepo.updateGhPages(relativeAppRoots, commitMessage);
     if (push) {
       await exampleRepo.push('gh-pages');
     } else {
-      _logger.info(
-          'NOT Pushing changes to gh-pages for ${exampleRepo.dirPath}.');
+      _logger
+          .info('NOT Pushing changes to gh-pages for ${exampleRepo.dirPath}.');
     }
   }
+
+  Future<String> _buildApp(Directory dir, String exampleName) async {
+    await buildApp(dir);
+    var href = '/$exampleName/' +
+        (options.ghPagesAppDir.isEmpty ? '' : '${options.ghPagesAppDir}/');
+    if (!dir.path.endsWith(exampleName)) {
+      href += p.basename(dir.path) + '/';
+    }
+    await adjustBaseHref(p.join(dir.path, 'build/web'), href);
+  }
+
+  /// Return list of directories containing pubspec files. If [dir] contains
+  /// a pubspec, return `[dir]`, otherwise look one level down in the
+  /// subdirectories of [dir], for pubspecs.
+  List<Directory> _getAppRoots(Directory dir) {
+    final List<Directory> appRoots = [];
+    if (_containsPubspec(dir)) {
+      appRoots.add(dir);
+    } else {
+      for (var fsEntity in dir.listSync(followLinks: false)) {
+        if (p.basename(fsEntity.path).startsWith('.')) continue;
+        if (fsEntity is Directory) {
+          if (!_containsPubspec(fsEntity)) continue;
+          _logger.finer('  >> pubspec found under ${fsEntity.path}');
+          appRoots.add(fsEntity);
+        }
+      }
+    }
+    return appRoots;
+  }
+
+  bool _containsPubspec(Directory dir) =>
+      new File(p.join(dir.path, 'pubspec.yaml')).existsSync();
 }

@@ -56,7 +56,7 @@ class GitRepository {
     _logger.fine('Git rm * under $dir.');
     if (new Directory(dir).existsSync()) {
       try {
-        await _git(['rm', '-r', '*'], workingDirectory: dir);
+        await _git(['rm', '-rf', '*'], workingDirectory: dir);
         return;
       } catch (e) {
         if (!e.toString().contains('did not match any files')) throw e;
@@ -84,35 +84,58 @@ class GitRepository {
   }
 
   /// Clones the git [repository] into this [dirPath].
-  Future updateGhPages(String sourcePath, String message) async {
-    _logger.fine('Checkout gh-pages.');
+  Future updateGhPages(Iterable<String> appRoots, String message) async {
+    await checkoutGhPages();
 
-    try {
-      await _git(['fetch', 'origin', 'gh-pages'], workingDirectory: dirPath);
-      await _git(['checkout', 'gh-pages'], workingDirectory: dirPath);
-    } catch (e) {
-      _logger.fine('Unable to fetch gh-pages: ${(e as GitException).message}');
-      _logger.fine('Creating new --orphan gh-pages branch.');
-      await _git(['checkout', '--orphan', 'gh-pages'],
+    // Remove all previous content of branch
+    await delete(options.ghPagesAppDir);
+
+    // Copy newly built app files
+    final baseDest = p.join(dirPath, options.ghPagesAppDir);
+    for (var appRoot in appRoots) {
+      final web = p.join(appRoot, 'build', 'web');
+      _logger.fine('Copy from $web to $dirPath.');
+      final dest = appRoot.isEmpty ? baseDest : p.join(baseDest, appRoot);
+      await Process.run('mkdir', ['-p', dest]);
+      await Process.run('cp', ['-a', p.join(web, '.'), dest],
           workingDirectory: dirPath);
     }
 
-    await delete(options.ghPagesAppDir);
-
-    // Copy the application assets into this folder.
-    _logger.fine('Copy from $sourcePath to $dirPath.');
-    final dest = p.join(dirPath, options.ghPagesAppDir);
-    await Process.run('cp', ['-a', p.join(sourcePath, '.'), dest]);
-
+    // Clean out temporary files
     await Process.run(
         'find',
-        [dest]..addAll(
+        [baseDest]..addAll(
             '( -name *.ng_*.json -o -name *.ng_placeholder ) -exec rm -f {} +'
                 .split(' ')));
 
     _logger.fine('Committing gh-pages changes for $dirPath.');
     await _git(['add', '.'], workingDirectory: dirPath);
     await _git(['commit', '-m', message], workingDirectory: dirPath);
+  }
+
+  /// Fetch and checkout gh-pages. If it does not exist then create it as a
+  /// new orphaned branch.
+  Future checkoutGhPages() async {
+    _logger.fine('Checkout gh-pages.');
+
+    try {
+      await _git(['fetch', 'origin', 'gh-pages'], workingDirectory: dirPath);
+      await _git(['checkout', 'gh-pages'], workingDirectory: dirPath);
+    } catch (e) {
+      if (e is! GitException ||
+          !e.message.contains("Couldn't find remote ref gh-pages")) throw e;
+      _logger
+          .fine('  Unable to fetch gh-pages: ${(e as GitException).message}');
+      _logger.fine('  Creating new --orphan gh-pages branch.');
+      await _git(['checkout', '--orphan', 'gh-pages'],
+          workingDirectory: dirPath);
+      await delete();
+    }
+  }
+
+  bool _isGhPagesException(ProcessResult r) {
+    final stderr = r.stderr;
+    return stderr is! String || stderr.contains("");
   }
 
   /// Returns the commit hash at HEAD.

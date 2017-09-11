@@ -40,43 +40,45 @@ Future _generateReadme(String path, SyncData syncData) async {
       : '\nSee also:\n' +
           syncData.links.map((String link) {
             return '- $link';
-          }).join('\n') + '\n';
+          }).join('\n') +
+          '\n';
 
-  final liveExampleSection = syncData.liveExampleHref.isEmpty
-      ? 'To run your own copy:'
-      : 'You can run a [hosted copy](${syncData.liveExampleHref}) of this '
-      'sample. Or run your own copy:';
+  final newIssueUri =
+      '//github.com/dart-lang/site-webdev/issues/new?title=${syncData.id}';
 
-  final newIssueUri = '//github.com/dart-lang/site-webdev/issues/new'
-      '?labels=example&title=%5BAngular%5D%5Bexample%5D%20'
-      '${syncData.id}%3A%20';
-
-  final readmeContent = '''
+  String readmeContent = '''
 $warningMessage## ${syncData.title}
 
-Welcome to the example application used in AngularDart's
-[${syncData.title}](${syncData.docHref}) page.
+Welcome to the example app used in the
+[${syncData.title}](${syncData.docHref}) page
+of [Dart for the web]($dartDocHostUri).
+''';
 
-$liveExampleSection
+  if (syncData.liveExampleHref.isNotEmpty)
+    readmeContent += '''
 
-1. Clone or [download][] this repo.
+You can run a [hosted copy](${syncData.liveExampleHref}) of this
+sample. Or run your own copy:
+
+1. Create a local copy of this repo (use the "Clone or download" button above).
 2. Get the dependencies: `pub get`
 3. Launch a development server: `pub serve`
 4. In a browser, open [http://localhost:8080](http://localhost:8080)
 
 In Dartium, you'll see the app right away. In other modern browsers,
 you'll have to wait a bit while pub converts the app.
+''';
+
+  readmeContent += '''
 $linkSection
 ---
 
-*Note:* The content of this repository is generated from
-[the Angular docs repository][docs repo] by running the
+*Note:* The content of this repository is generated from the
+[Angular docs repository][docs repo] by running the
 [dart-doc-syncer](//github.com/angular/dart-doc-syncer) tool.
-If you find a problem with this sample's code, please open an
-[issue][].
+If you find a problem with this sample's code, please open an [issue][].
 
 [docs repo]: ${syncData.repoHref}
-[download]: //github.com/angular-examples/${syncData.name}/archive/master.zip
 [issue]: $newIssueUri
 ''';
 

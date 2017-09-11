@@ -29,9 +29,7 @@ Options options = new Options();
 
 // TODO: make these configurable? (with defaults as given)
 const dartDocHostUri = 'https://webdev.dartlang.org';
-const dartDocUriPrefix = dartDocHostUri + '/angular';
 const exampleConfigFileName = '.docsync.json';
-const exampleHostUriPrefix = '$dartDocHostUri/examples/ng/doc';
 const tempFolderNamePrefix = 'dds-';
 
 Directory initWorkingDir() {
