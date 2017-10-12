@@ -27,11 +27,12 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     int updateCount = 0;
     try {
       final angularRepository = await _cloneWebdevRepoIntoWorkDir();
-      final files = await new Directory(angularRepository.dirPath)
+      final files = (await new Directory(angularRepository.dirPath)
           .list(recursive: true)
           .where(
               (e) => e is File && p.basename(e.path) == exampleConfigFileName)
-          .toList();
+          .toList())
+          ..sort((e1, e2) => e1.path.compareTo(e2.path));
       for (var e in files) {
         var dartDir =
             p.dirname(e.path).substring(angularRepository.dirPath.length);
@@ -202,10 +203,12 @@ class GitDocumentationUpdater implements DocumentationUpdater {
         appRoots.map((d) => stripPathPrefix(exampleRepo.dirPath, d.path));
     excludeTmpBuildFiles(exampleRepo.dir, relativeAppRoots);
 
+    final commitHash = await exampleRepo.getCommitHash();
+
     for (var appRoot in appRoots) {
       if (appRoots.length > 1)
         print('  Building app ${stripPathPrefix(workDir.path, appRoot.path)}');
-      await _buildApp(appRoot, exampleName);
+      await _buildApp(appRoot, exampleName, commitHash);
     }
 
     await exampleRepo.updateGhPages(relativeAppRoots, commitMessage);
@@ -217,14 +220,17 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     }
   }
 
-  Future<String> _buildApp(Directory dir, String exampleName) async {
+  Future _buildApp(
+      Directory dir, String exampleName, String commitHash) async {
     await buildApp(dir);
     var href = '/$exampleName/' +
         (options.ghPagesAppDir.isEmpty ? '' : '${options.ghPagesAppDir}/');
     if (!dir.path.endsWith(exampleName)) {
       href += p.basename(dir.path) + '/';
     }
-    await adjustBaseHref(p.join(dir.path, 'build/web'), href);
+    final pathToBuildWeb = p.join(dir.path, 'build/web');
+    await adjustBaseHref(pathToBuildWeb, href);
+    await createBuildInfoFile(pathToBuildWeb, exampleName, commitHash);
   }
 
   /// Return list of directories containing pubspec files. If [dir] contains

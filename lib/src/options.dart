@@ -28,6 +28,7 @@ class Options {
 Options options = new Options();
 
 // TODO: make these configurable? (with defaults as given)
+const buildInfoFileName = 'build-info.json';
 const dartDocHostUri = 'https://webdev.dartlang.org';
 const exampleConfigFileName = '.docsync.json';
 const tempFolderNamePrefix = 'dds-';
