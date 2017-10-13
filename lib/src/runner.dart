@@ -10,7 +10,8 @@ final Logger _logger = new Logger('runner');
 Exception newException(String msg) => new Exception(msg);
 
 Future<ProcessResult> run(String executable, List<String> arguments,
-    {String workingDirectory,
+    {Map<String, String> environment,
+    String workingDirectory,
     bool isException(ProcessResult r),
     Exception mkException(String msg): newException}) async {
   var cmd = "$executable ${arguments.join(' ')}";
@@ -19,7 +20,7 @@ Future<ProcessResult> run(String executable, List<String> arguments,
 
   if (!options.dryRun) {
     final r = await Process.run(executable, arguments,
-        workingDirectory: workingDirectory);
+        workingDirectory: workingDirectory, environment: environment);
     if (r.exitCode == 0 && (isException == null || !isException(r))) return r;
     // _logger.info('ERROR running: $cmd. Here are stderr and stdout:');
     // _logger.info(r.stderr);

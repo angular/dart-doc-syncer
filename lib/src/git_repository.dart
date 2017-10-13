@@ -110,6 +110,17 @@ class GitRepository {
 
     _logger.fine('Committing gh-pages changes for $dirPath.');
     await _git(['add', '.'], workingDirectory: dirPath);
+    final status = await _git(['status', '--short'], workingDirectory: dirPath);
+    final statusLines = status.split('\n')
+      ..removeWhere((statusLine) =>
+          statusLine.isEmpty ||
+          statusLine.startsWith('M') && statusLine.contains(buildInfoFileName));
+    if (statusLines.length == 0) {
+      final msg =
+          'At most the $buildInfoFileName file has changed: nothing to commit';
+      _logger.fine('  $msg');
+      throw msg;
+    }
     await _git(['commit', '-m', message], workingDirectory: dirPath);
   }
 
@@ -131,11 +142,6 @@ class GitRepository {
           workingDirectory: dirPath);
       await delete();
     }
-  }
-
-  bool _isGhPagesException(ProcessResult r) {
-    final stderr = r.stderr;
-    return stderr is! String || stderr.contains("");
   }
 
   /// Returns the commit hash at HEAD.
