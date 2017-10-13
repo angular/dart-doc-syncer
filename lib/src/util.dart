@@ -24,7 +24,8 @@ Future dryRunMkDir(String path) async {
 }
 
 /// Read [path] as a string, apply [transformer] and write back the result.
-Future<Null> transformFile(String path, String transformer(String content)) async {
+Future<Null> transformFile(
+    String path, String transformer(String content)) async {
   _logger.fine('  Transform file $path');
   if (options.dryRun) return new Future.value();
 

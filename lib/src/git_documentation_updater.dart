@@ -27,12 +27,12 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     int updateCount = 0;
     try {
       final angularRepository = await _cloneWebdevRepoIntoWorkDir();
-      final files = (await new Directory(angularRepository.dirPath)
+      final files = await new Directory(angularRepository.dirPath)
           .list(recursive: true)
           .where(
               (e) => e is File && p.basename(e.path) == exampleConfigFileName)
-          .toList())
-          ..sort((e1, e2) => e1.path.compareTo(e2.path));
+          .toList();
+      files.sort((e1, e2) => e1.path.compareTo(e2.path));
       for (var e in files) {
         var dartDir =
             p.dirname(e.path).substring(angularRepository.dirPath.length);
@@ -220,8 +220,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     }
   }
 
-  Future _buildApp(
-      Directory dir, String exampleName, String commitHash) async {
+  Future _buildApp(Directory dir, String exampleName, String commitHash) async {
     await buildApp(dir);
     var href = '/$exampleName/' +
         (options.ghPagesAppDir.isEmpty ? '' : '${options.ghPagesAppDir}/');

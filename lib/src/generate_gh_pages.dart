@@ -63,7 +63,8 @@ void excludeTmpBuildFiles(Directory exampleRepo, Iterable<String> appDirPaths) {
   }
 }
 
-Future createBuildInfoFile(String pathToWebFolder, String exampleName, String commitHash) async {
+Future createBuildInfoFile(
+    String pathToWebFolder, String exampleName, String commitHash) async {
   final buildInfoFile = new File(p.join(pathToWebFolder, buildInfoFileName));
 
   // We normalize the build timestamp to TZ=US/Pacific, which is easier
@@ -73,7 +74,8 @@ Future createBuildInfoFile(String pathToWebFolder, String exampleName, String co
 
   final json = {
     'build-time': date.isNotEmpty ? date.trim() : new DateTime.now(),
-    'commit-sha': 'https://github.com/angular-examples/$exampleName/commit/$commitHash'
+    'commit-sha':
+        'https://github.com/angular-examples/$exampleName/commit/$commitHash'
   };
   buildInfoFile.writeAsStringSync(JSON.encode(json));
 }
