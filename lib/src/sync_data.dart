@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:dart_doc_syncer/example2uri.dart';
 import 'package:path/path.dart' as p;
 
+import '../example2uri.dart';
 import 'options.dart';
 
 /// Holds metadata about the example application that is used to generate a
@@ -28,22 +28,25 @@ class SyncData {
       this.links: const [],
       String repoHref: '',
       String path})
-      : this.name = name.isEmpty ? getExampleName(path) : name,
+      : this.name = _name(name, path),
         this.path = path,
         this.docPart = docPart,
         this.docHref = docHref.isEmpty
-            ? p.join(dartDocHostUri, docPart, getExampleName(path))
+            ? p.join(webdevURL, docPart, _name(name, path))
             : docHref.startsWith('http')
                 ? docHref
-                : p.join(dartDocHostUri, docPart, docHref),
+                : p.join(webdevURL, docPart, docHref),
         this.liveExampleHref = liveExampleHref == null
-            ? p.join(dartDocHostUri, path)
+            ? p.join(webdevURL, docExampleDirRoot, _name(name, path))
             : liveExampleHref.startsWith('http') || liveExampleHref.isEmpty
                 ? liveExampleHref
-                : p.join(dartDocHostUri, liveExampleHref),
+                : p.join(webdevURL, liveExampleHref),
         this.repoHref = repoHref.isEmpty
             ? '//github.com/dart-lang/site-webdev/tree/master/' + path
             : repoHref;
+
+  static String _name(String name, String path) =>
+      name.isEmpty ? getExampleName(path) : name;
 
   factory SyncData.fromJson(String json, {String path}) {
     final data = JSON.decode(json);

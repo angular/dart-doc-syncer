@@ -1,6 +1,6 @@
 import 'package:path/path.dart' as p;
 
-const docExampleDirRoot = 'examples';
+import 'options.dart';
 
 class Example2Uri {
   final String _relativePath;
