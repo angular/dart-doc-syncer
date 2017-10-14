@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dart_doc_syncer/example2uri.dart';
-import 'package:dart_doc_syncer/src/generate_readme.dart';
-import 'package:dart_doc_syncer/src/remove_doc_tags.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
+import 'generate_readme.dart';
+import 'options.dart';
+import 'remove_doc_tags.dart';
 import 'runner.dart' as Process; // TODO(chalin) tmp name to avoid code changes
 
 final Logger _logger = new Logger('update_doc_repo');

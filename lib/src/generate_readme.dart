@@ -51,7 +51,7 @@ $warningMessage## ${syncData.title}
 
 Welcome to the example app used in the
 [${syncData.title}](${syncData.docHref}) page
-of [Dart for the web]($dartDocHostUri).
+of [Dart for the web]($webdevURL).
 ''';
 
   if (syncData.liveExampleHref.isNotEmpty)
@@ -75,7 +75,7 @@ $linkSection
 
 *Note:* The content of this repository is generated from the
 [Angular docs repository][docs repo] by running the
-[dart-doc-syncer](//github.com/angular/dart-doc-syncer) tool.
+[dart-doc-syncer](//github.com/dart-lang/dart-doc-syncer) tool.
 If you find a problem with this sample's code, please open an [issue][].
 
 [docs repo]: ${syncData.repoHref}

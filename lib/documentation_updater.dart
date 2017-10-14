@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:dart_doc_syncer/src/git_documentation_updater.dart';
-import 'package:dart_doc_syncer/src/git_repository.dart';
+import 'src/git_documentation_updater.dart';
+import 'src/git_repository.dart';
 
 abstract class DocumentationUpdater {
   factory DocumentationUpdater() =>

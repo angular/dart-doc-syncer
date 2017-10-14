@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dart_doc_syncer/documentation_updater.dart';
-import 'package:dart_doc_syncer/example2uri.dart';
-import 'package:dart_doc_syncer/src/generate_gh_pages.dart';
 import 'package:path/path.dart' as p;
 import 'package:logging/logging.dart';
 
+import '../documentation_updater.dart';
+import '../example2uri.dart';
 import 'git_repository.dart';
 import 'generate_doc.dart';
+import 'generate_gh_pages.dart';
 import 'options.dart';
 import 'util.dart';
 
