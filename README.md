@@ -28,7 +28,7 @@ dart dart_doc_syncer --match .
 ```
 dart ~/GITHUB/dart-doc-syncer/bin/dart_doc_syncer.dart --help
 
-Syncs example applications.
+Syncs Angular docs example apps.
 
 Usage: dart_doc_syncer [options] [<exampleName> | <examplePath> <exampleRepo>]
 
@@ -45,6 +45,7 @@ Usage: dart_doc_syncer [options] [<exampleName> | <examplePath> <exampleRepo>]
                           directory in which the generated example apps will be placed (gh-pages branch)
 
 -k, --keep-tmp            do not delete temporary working directory once done
+    --pub-get             use `pub get` instead of `pub upgrade` before building apps
 -p, --[no-]push           prepare updates and push to example repo
                           (defaults to on)
 
@@ -57,8 +58,7 @@ Usage: dart_doc_syncer [options] [<exampleName> | <examplePath> <exampleRepo>]
                           GitHub id of repo to fetch examples from
                           (defaults to "dart-lang")
 
--v, --verbose
+-v, --verbose             
 -w, --work-dir            <path>
-                          path to a working directory;
-                          when unspecified a system-generated path to a temporary directory is used
+                          path to a working directory; when unspecified a system-generated path to a temporary directory is used
 ```

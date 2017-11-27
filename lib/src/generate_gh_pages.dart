@@ -36,7 +36,7 @@ bool isException(ProcessResult r) {
 
 Future buildApp(Directory example) async {
   _logger.fine("Building ${example.path}");
-  await Process.run('pub', ['get'],
+  await Process.run('pub', [options.pubGetOrUpgrade],
       workingDirectory: example.path, isException: isException);
   await Process.run('pub', ['build'],
       workingDirectory: example.path, isException: isException);
@@ -46,7 +46,6 @@ const filesToExclude = '''
 .packages
 .pub/
 build/
-pubspec.lock
 ''';
 
 /// Files created when the app was built should be ignored.

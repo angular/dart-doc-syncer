@@ -1,13 +1,20 @@
 name: dart_doc_syncer
 version: 0.0.0
+
 description: >
   Updates a documentation repository for an Angular Dart example.
+
 author:
   - Thibault Sottiaux <thso@google.com>
   - Patrice Chalin <chalin@dsrg.org>
+
+environment:
+  sdk: '>=1.20.1 <2.0.0'
+
 dependencies:
   args: ^0.13.0
   logging: ^0.11.2
   path: ^1.2.0
+
 dev_dependencies:
   test: ^0.12.8
