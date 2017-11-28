@@ -10,6 +10,8 @@ class Options {
   bool forceBuild = false;
   String ghPagesAppDir;
   bool keepTmp = false;
+  bool pubGet = false;
+  String get pubGetOrUpgrade => pubGet ? 'get' : 'upgrade';
   bool push = true;
   /*@nullable*/ RegExp match;
   String user = 'dart-lang';
@@ -54,6 +56,7 @@ const Map<String, String> _help = const {
   'force-build': 'forces build of example app when sources have not changed',
   'help': 'show this usage information',
   'keep-tmp': 'do not delete temporary working directory once done',
+  'pub-get': 'use `pub get` instead of `pub upgrade` before building apps',
   'push': 'prepare updates and push to example repo',
   'match': '<dart-regexp>\n'
       'sync all examples having a data file ($exampleConfigFileName)\n'
@@ -66,29 +69,77 @@ const Map<String, String> _help = const {
 
 /// Processes command line options and returns remaining arguments.
 List<String> processArgs(List<String> args) {
-  ArgParser argParser = new ArgParser(allowTrailingOptions: true);
-
-  argParser.addFlag('help', abbr: 'h', negatable: false, help: _help['help']);
-  argParser.addOption('branch',
-      abbr: 'b', help: _help['branch'], defaultsTo: options.branch);
-  argParser.addFlag('dry-run',
-      abbr: 'n', negatable: false, help: _help['dry-run']);
-  argParser.addFlag('force-build',
-      abbr: 'f', negatable: false, help: _help['force-build']);
-  argParser.addOption('gh-pages-app-dir',
+  ArgParser argParser = new ArgParser(allowTrailingOptions: true)
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      negatable: false,
+      help: _help['help'],
+    )
+    ..addOption(
+      'branch',
+      abbr: 'b',
+      help: _help['branch'],
+      defaultsTo: options.branch,
+    )
+    ..addFlag(
+      'dry-run',
+      abbr: 'n',
+      negatable: false,
+      help: _help['dry-run'],
+    )
+    ..addFlag(
+      'force-build',
+      abbr: 'f',
+      negatable: false,
+      help: _help['force-build'],
+    )
+    ..addOption(
+      'gh-pages-app-dir',
       abbr: 'g',
       help: _help['gh-pages-app-dir'],
-      defaultsTo: options.ghPagesAppDir);
-  argParser.addFlag('keep-tmp',
-      abbr: 'k', negatable: false, help: _help['keep-tmp']);
-  argParser.addFlag('push',
-      abbr: 'p', help: _help['push'], defaultsTo: options.push);
-  argParser.addOption('match', abbr: 'm', help: _help['match']);
-  argParser.addOption('user',
-      abbr: 'u', help: _help['user'], defaultsTo: options.user);
-  argParser.addFlag('verbose',
-      abbr: 'v', negatable: false, defaultsTo: options.verbose);
-  argParser.addOption('work-dir', abbr: 'w', help: _help['work-dir']);
+      defaultsTo: options.ghPagesAppDir,
+    )
+    ..addFlag(
+      'keep-tmp',
+      abbr: 'k',
+      negatable: false,
+      help: _help['keep-tmp'],
+    )
+    ..addFlag(
+      'pub-get',
+      help: _help['pub-get'],
+      negatable: false,
+      defaultsTo: options.pubGet,
+    )
+    ..addFlag(
+      'push',
+      abbr: 'p',
+      help: _help['push'],
+      defaultsTo: options.push,
+    )
+    ..addOption(
+      'match',
+      abbr: 'm',
+      help: _help['match'],
+    )
+    ..addOption(
+      'user',
+      abbr: 'u',
+      help: _help['user'],
+      defaultsTo: options.user,
+    )
+    ..addFlag(
+      'verbose',
+      abbr: 'v',
+      negatable: false,
+      defaultsTo: options.verbose,
+    )
+    ..addOption(
+      'work-dir',
+      abbr: 'w',
+      help: _help['work-dir'],
+    );
 
   var argResults;
   try {
@@ -106,6 +157,7 @@ List<String> processArgs(List<String> args) {
     ..forceBuild = argResults['force-build']
     ..ghPagesAppDir = argResults['gh-pages-app-dir']
     ..keepTmp = argResults['keep-tmp']
+    ..pubGet = argResults['pub-get']
     ..push = argResults['push']
     ..match =
         argResults['match'] != null ? new RegExp(argResults['match']) : null
@@ -144,7 +196,7 @@ void validateAndNormalizeGhPagesAppDir() {
 }
 
 void printUsageAndExit([String _msg, int exitCode = 1]) {
-  var msg = 'Syncs Angular docs example applications';
+  var msg = 'Syncs Angular docs example apps';
   if (_msg != null) msg = _msg;
   print('''
 
