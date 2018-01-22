@@ -14,7 +14,7 @@ class Example2Uri {
   String get path => p.join(docExampleDirRoot, _relativePath);
 
   String get repositoryUri =>
-      'git@github.com:angular-examples/$exampleName.git';
+      'https://github.com/angular-examples/$exampleName.git';
 }
 
 /// [path] is assumed to be of the form '[docExampleDirRoot]/.../exampleName';
