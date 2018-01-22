@@ -25,6 +25,9 @@ class Options {
     final path = new Directory(workDir);
     return path.existsSync();
   }
+
+  int get _ngVers => int.parse(ghPagesAppDir);
+  bool get useNewBuild => _ngVers >= 5;
 }
 
 Options options = new Options();

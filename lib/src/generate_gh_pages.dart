@@ -36,9 +36,14 @@ bool isException(ProcessResult r) {
 
 Future buildApp(Directory example) async {
   _logger.fine("Building ${example.path}");
-  await Process.run('pub', [options.pubGetOrUpgrade],
+  List<String> pubArgs = [options.pubGetOrUpgrade];
+  if (options.useNewBuild) pubArgs.add('--no-precompile');
+  await Process.run('pub', pubArgs,
       workingDirectory: example.path, isException: isException);
-  await Process.run('pub', ['build'],
+  pubArgs = options.useNewBuild
+      ? 'pub run build_runner build --output=build'.split(' ')
+      : 'build';
+  await Process.run('pub', pubArgs,
       workingDirectory: example.path, isException: isException);
 }
 
