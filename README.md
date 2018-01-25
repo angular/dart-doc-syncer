@@ -59,6 +59,9 @@ Usage: dart_doc_syncer [options] [<exampleName> | <examplePath> <exampleRepo>]
                           (defaults to "dart-lang")
 
 -v, --verbose             
+    --web-compiler        <compiler>, either dart2js or dartdevc
+                          (defaults to "dart2js")
+
 -w, --work-dir            <path>
                           path to a working directory; when unspecified a system-generated path to a temporary directory is used
 ```

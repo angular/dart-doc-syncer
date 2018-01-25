@@ -241,7 +241,8 @@ class GitDocumentationUpdater implements DocumentationUpdater {
       appRoots.add(dir);
     } else {
       for (var fsEntity in dir.listSync(followLinks: false)) {
-        if (p.basename(fsEntity.path).startsWith('.')) continue;
+        if (p.basename(fsEntity.path).startsWith('.') ||
+            options.containsBuildDir(fsEntity.path)) continue;
         if (fsEntity is Directory) {
           if (!_containsPubspec(fsEntity)) continue;
           _logger.finer('  >> pubspec found under ${fsEntity.path}');

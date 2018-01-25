@@ -99,6 +99,9 @@ class GitRepository {
       await Process.run('mkdir', ['-p', dest]);
       await Process.run('cp', ['-a', p.join(web, '.'), dest],
           workingDirectory: dirPath);
+      // Deploy pubspec.lock so we know what the app was built with.
+      await Process.run('cp', [p.join(appRoot, 'pubspec.lock'), dest],
+          workingDirectory: dirPath);
     }
 
     // Clean out temporary files
