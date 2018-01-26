@@ -48,7 +48,7 @@ Future main(List<String> _args) async {
         push: options.push);
     print('Done updating $repositoryUri');
   } else {
-    await documentation.updateMatchingRepo(options.match,
+    await documentation.updateMatchingRepo(options.match, options.skip,
         clean: options.workDir == null && !options.keepTmp, push: options.push);
   }
 }

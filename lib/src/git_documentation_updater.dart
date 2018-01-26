@@ -23,7 +23,8 @@ class GitDocumentationUpdater implements DocumentationUpdater {
   GitDocumentationUpdater(this._gitFactory);
 
   @override
-  Future<int> updateMatchingRepo(RegExp re, {bool push, bool clean}) async {
+  Future<int> updateMatchingRepo(RegExp match, RegExp skip,
+      {bool push, bool clean}) async {
     int updateCount = 0;
     try {
       final angularRepository = await _cloneWebdevRepoIntoWorkDir();
@@ -38,7 +39,8 @@ class GitDocumentationUpdater implements DocumentationUpdater {
             p.dirname(e.path).substring(angularRepository.dirPath.length);
         if (dartDir.startsWith('/')) dartDir = dartDir.substring(1);
         final e2u = new Example2Uri(dartDir);
-        if (re.hasMatch(dartDir)) {
+        if (match.hasMatch(dartDir) &&
+            (skip == null || !skip.hasMatch(dartDir))) {
           var updated = await updateRepository(e2u.path, e2u.repositoryUri,
               clean: clean, push: push);
           if (updated) updateCount++;

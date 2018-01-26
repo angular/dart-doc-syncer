@@ -1,4 +1,9 @@
-### 0.2.0
+## 0.3.0
+
+- Add `--skip <regex>` option, to filter out projects
+  permitted by `--match <regex>`.
+
+## 0.2.0
 
 This is the first changelog entry.
 

@@ -13,6 +13,6 @@ abstract class DocumentationUpdater {
       {String exampleName, bool push, bool clean});
 
   /// Updates all example repositories containing a doc syncer data file
-  /// and whose path matches [re].
-  Future<int> updateMatchingRepo(RegExp re, {bool push, bool clean});
+  /// and whose path matches [match] but not [skip].
+  Future<int> updateMatchingRepo(RegExp match, RegExp skip, {bool push, bool clean});
 }
