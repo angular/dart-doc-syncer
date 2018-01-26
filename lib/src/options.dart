@@ -57,25 +57,25 @@ Directory initWorkingDir() {
 Directory workDir;
 
 const Map<String, String> _help = const {
-  'branch': '<branch-name>\ngit branch to fetch webdev and examples from',
-  'gh-pages-app-dir': '<path>\ndirectory in which the generated example apps '
+  'branch': '<branch-name>\nGit branch to fetch webdev and examples from',
+  'gh-pages-app-dir': '<path>\nDirectory in which the generated example apps '
       'will be placed (gh-pages branch)\n',
-  'dry-run': 'show which commands would be executed but make (almost) '
+  'dry-run': 'Show which commands would be executed but make (almost) '
       'no changes;\nonly the temporary directory will be created',
-  'force-build': 'forces build of example app when sources have not changed',
-  'help': 'show this usage information',
-  'keep-tmp': 'do not delete temporary working directory once done',
-  'pub-get': 'use `pub get` instead of `pub upgrade` before building apps',
-  'push': 'prepare updates and push to example repo',
+  'force-build': 'Forces build of example app when sources have not changed',
+  'help': 'Show this usage information',
+  'keep-tmp': 'Do not delete temporary working directory once done',
+  'pub-get': 'Use `pub get` instead of `pub upgrade` before building apps',
+  'push': 'Prepare updates and push to example repo',
   'match': '<dart-regexp>\n'
-      'sync all examples having a data file ($exampleConfigFileName)\n'
+      'Sync all examples having a data file ($exampleConfigFileName)\n'
       'and whose repo path matches the given regular expression;\n'
       'use "." to match all',
   'skip': '<dart-regexp>\nNegative filter applied to the project list created '
       'by use of the --match option',
   'user': '<user-id>\nGitHub id of repo to fetch examples from',
   'web-compiler': '<compiler>, either dart2js or dartdevc',
-  'work-dir': '<path>\npath to a working directory; when unspecified '
+  'work-dir': '<path>\nPath to a working directory; when unspecified '
       'a system-generated path to a temporary directory is used'
 };
 

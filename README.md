@@ -32,27 +32,30 @@ Syncs Angular docs example apps.
 
 Usage: dart_doc_syncer [options] [<exampleName> | <examplePath> <exampleRepo>]
 
--h, --help                show this usage information
+-h, --help                Show this usage information
 -b, --branch              <branch-name>
-                          git branch to fetch webdev and examples from
+                          Git branch to fetch webdev and examples from
                           (defaults to "master")
 
--n, --dry-run             show which commands would be executed but make (almost) no changes;
+-n, --dry-run             Show which commands would be executed but make (almost) no changes;
                           only the temporary directory will be created
 
--f, --force-build         forces build of example app when sources have not changed
+-f, --force-build         Forces build of example app when sources have not changed
 -g, --gh-pages-app-dir    <path>
-                          directory in which the generated example apps will be placed (gh-pages branch)
+                          Directory in which the generated example apps will be placed (gh-pages branch)
 
--k, --keep-tmp            do not delete temporary working directory once done
-    --pub-get             use `pub get` instead of `pub upgrade` before building apps
--p, --[no-]push           prepare updates and push to example repo
+-k, --keep-tmp            Do not delete temporary working directory once done
+    --pub-get             Use `pub get` instead of `pub upgrade` before building apps
+-p, --[no-]push           Prepare updates and push to example repo
                           (defaults to on)
 
 -m, --match               <dart-regexp>
-                          sync all examples having a data file (.docsync.json)
+                          Sync all examples having a data file (.docsync.json)
                           and whose repo path matches the given regular expression;
                           use "." to match all
+
+    --skip                <dart-regexp>
+                          Negative filter applied to the project list created by use of the --match option
 
 -u, --user                <user-id>
                           GitHub id of repo to fetch examples from
@@ -63,5 +66,5 @@ Usage: dart_doc_syncer [options] [<exampleName> | <examplePath> <exampleRepo>]
                           (defaults to "dart2js")
 
 -w, --work-dir            <path>
-                          path to a working directory; when unspecified a system-generated path to a temporary directory is used
+                          Path to a working directory; when unspecified a system-generated path to a temporary directory is used
 ```
