@@ -77,6 +77,9 @@ Future _generateBuildYaml(String projectPath) async {
 String _buildYaml(String pkgName) => '''targets:
   ${pkgName}:
     builders:
+      angular:
+        options:
+          use_new_template_parser: true
       build_web_compilers|entrypoint:
         options:
           compiler: ${options.webCompiler}
