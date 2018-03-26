@@ -51,40 +51,70 @@ Future buildApp(Directory example) async {
   // Workaround to https://github.com/dart-lang/build/issues/890
   final webPackagesDir =
       new Directory(p.join(example.path, options.buildDir, 'web/packages'));
-  if (options.useNewBuild &&
-      await FileSystemEntity.isLink(webPackagesDir.path)) {
+  if (!options.useNewBuild) {
+    // Not using the new build system, there is nothing more to do
+  } else if (!webPackagesDir.existsSync()) {
+    _logger.warning('expected ${webPackagesDir} to be a directory '
+        'or a link to a directory but instead it is '
+        '${webPackagesDir.statSync().type}');
+  } else if (!await FileSystemEntity.isLink(webPackagesDir.path)) {
+    // Already a directory, there is nothing more to do.
+    _logger.info('  Non-link directory exists: ${webPackagesDir.path}');
+  } else {
+    // It is a link. Erase the link and copy over the real packages dir.
     await Process.runCmd('rm -f ${webPackagesDir.path}',
         workingDirectory: example.path, isException: isException);
     await Process.runCmd(
         'cp -a ${options.buildDir}/packages ${webPackagesDir.path}',
         workingDirectory: example.path,
         isException: isException);
-  } else {
-    _logger.warning('WARNING: ${webPackagesDir} was expected to be a link'
-        ' but was not. It was ${webPackagesDir.statSync().type}');
   }
 }
 
 Future _generateBuildYaml(String projectPath) async {
   final pubspecYamlFile = new File(p.join(projectPath, 'pubspec.yaml'));
-  final pubspecYaml = loadYaml(await pubspecYamlFile.readAsString());
-  final buildYaml = _buildYaml(pubspecYaml['name']);
+  final pubspecYaml =
+      loadYaml(await pubspecYamlFile.readAsString()) as YamlMap;
+  final buildYaml = _buildYaml(pubspecYaml['name'], options.webCompiler,
+      _extractNgVers(pubspecYaml) ?? 0);
   final buildYamlFile = new File(p.join(projectPath, 'build.yaml'));
   _logger.info('Generating ${buildYamlFile.path}:\n$buildYaml');
   await buildYamlFile.writeAsString(buildYaml);
 }
 
-String _buildYaml(String pkgName) => '''targets:
-  ${pkgName}:
+// Note: we could use ${pkgName} as the target.
+String _buildYaml(String pkgName, String webCompiler, int majorNgVers) =>
+    '''
+targets:
+  \$default:
     builders:
       build_web_compilers|entrypoint:
+        generate_for:
+          - web/main.dart
         options:
-          compiler: ${options.webCompiler}
-  ''';
+          compiler: $webCompiler
+          dart2js_args:
+            - --fast-startup
+            - --minify
+            - --trust-type-annotations
+''' +
+    (majorNgVers >= 5
+        ? '''
+            - --enable-asserts
+            # - --preview-dart-2 # This option isn't supported yet
+'''
+        : '');
+
+int _extractNgVers(YamlMap pubspecYaml) {
+  final ngVersConstraint = pubspecYaml['dependencies']['angular'];
+  final match = new RegExp(r'\^?(\d+)\.').firstMatch(ngVersConstraint);
+  if (match == null) return null;
+  return int.parse(match[1], onError: (_) => null);
+}
 
 // Until we can specify the needed web-compiler on the command line
 // (https://github.com/dart-lang/build/issues/801), we'll auto-
-// generate build.yml. Ignore build.yaml.
+// generate build.yml. Ignore the generated build.yaml.
 String _filesToExclude() => '''
 .packages
 .pub/

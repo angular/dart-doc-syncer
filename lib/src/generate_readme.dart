@@ -44,14 +44,14 @@ Future _generateReadme(String path, SyncData syncData) async {
           '\n';
 
   final newIssueUri =
-      '//github.com/dart-lang/site-webdev/issues/new?title=${syncData.id}';
+      '//github.com/dart-lang/site-webdev/issues/new?title=[${options.branch}]%20${syncData.id}';
 
   String readmeContent = '''
 $warningMessage## ${syncData.title}
 
 Welcome to the example app used in the
 [${syncData.title}](${syncData.docHref}) page
-of [Dart for the web]($webdevURL).
+of [Dart for the web](${options.webdevURL}).
 ''';
 
   if (syncData.liveExampleHref.isNotEmpty)
@@ -62,8 +62,10 @@ sample. Or run your own copy:
 
 1. Create a local copy of this repo (use the "Clone or download" button above).
 2. Get the dependencies: `pub get`
-3. Launch a development server: `pub serve`
+3. Launch a development server: `pub ${options.useNewBuild ? 'run build_runner serve' : 'serve'}`
 4. In a browser, open [http://localhost:8080](http://localhost:8080)
+''';
+  if (!options.useNewBuild) readmeContent += '''
 
 In Dartium, you'll see the app right away. In other modern browsers,
 you'll have to wait a bit while pub converts the app.
