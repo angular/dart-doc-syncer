@@ -32,17 +32,17 @@ class SyncData {
         this.path = path,
         this.docPart = docPart,
         this.docHref = docHref.isEmpty
-            ? p.join(webdevURL, docPart, _name(name, path))
+            ? p.join(options.webdevURL, docPart, _name(name, path))
             : docHref.startsWith('http')
                 ? docHref
-                : p.join(webdevURL, docPart, docHref),
+                : p.join(options.webdevURL, docPart, docHref),
         this.liveExampleHref = liveExampleHref == null
-            ? p.join(webdevURL, docExampleDirRoot, _name(name, path))
+            ? p.join(options.webdevURL, docExampleDirRoot, _name(name, path))
             : liveExampleHref.startsWith('http') || liveExampleHref.isEmpty
                 ? liveExampleHref
-                : p.join(webdevURL, liveExampleHref),
+                : p.join(options.webdevURL, liveExampleHref),
         this.repoHref = repoHref.isEmpty
-            ? '//github.com/dart-lang/site-webdev/tree/master/' + path
+            ? '//github.com/dart-lang/site-webdev/tree/${options.branch}/' + path
             : repoHref;
 
   static String _name(String name, String path) =>

@@ -5,7 +5,7 @@ import 'package:path/path.dart' as p;
 
 /// Global options
 class Options {
-  String branch = 'master';
+  String branch = defaultGitBranch;
   // buildDir isn't user configurable (yet).
   String buildDir = 'build'; // Path to build directory relative to package root
   bool dryRun = true;
@@ -34,16 +34,21 @@ class Options {
 
   RegExp get _buildDirRE => new RegExp(r'\b' + buildDir + r'\b');
   bool containsBuildDir(String path) => _buildDirRE.hasMatch(path);
+
+  String get webdevURL =>
+      branch == defaultGitBranch ? _webdevURL : _webdevDevURL;
 }
 
 Options options = new Options();
 
 // TODO: make these configurable? (with defaults as given)
 const buildInfoFileName = 'build-info.json';
-const webdevURL = 'https://webdev.dartlang.org';
+const defaultGitBranch = 'master';
 const docExampleDirRoot = 'examples';
 const exampleConfigFileName = '.docsync.json';
 const tempFolderNamePrefix = 'dds-';
+const _webdevURL = 'https://webdev.dartlang.org';
+const _webdevDevURL = 'https://webdev-dartlang-org-dev.firebaseapp.com';
 
 Directory initWorkingDir() {
   final tmpEnvVar = Platform.environment['TMP'];
@@ -182,8 +187,7 @@ List<String> processArgs(List<String> args) {
     ..push = argResults['push']
     ..match =
         argResults['match'] != null ? new RegExp(argResults['match']) : null
-    ..skip =
-        argResults['skip'] != null ? new RegExp(argResults['skip']) : null
+    ..skip = argResults['skip'] != null ? new RegExp(argResults['skip']) : null
     ..user = argResults['user']
     ..verbose = argResults['verbose']
     ..webCompiler = argResults['web-compiler']

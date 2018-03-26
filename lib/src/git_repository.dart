@@ -9,7 +9,7 @@ import 'options.dart';
 import 'util.dart';
 
 class GitRepositoryFactory {
-  GitRepository create(String directory, [String branch = 'master']) =>
+  GitRepository create(String directory, [String branch = defaultGitBranch]) =>
       new GitRepository(directory, branch);
 }
 
@@ -41,7 +41,7 @@ class GitRepository {
     }
     // Disable example repo branch creation for now. Handle it outside the dds.
     // _logger.info('Branch $branch does not exist, creating it from master');
-    // await _git(['clone', '-b', 'master', repository, directory]);
+    // await _git(['clone', '-b', defaultGitBranch, repository, directory]);
     // await _git(['checkout', '-b', branch], workingDirectory: directory);
   }
 

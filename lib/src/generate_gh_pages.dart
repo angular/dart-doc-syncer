@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:yaml/yaml.dart';
+// import 'package:yaml/yaml.dart';
 
 import 'options.dart';
 import 'runner.dart' as Process; // TODO(chalin) tmp name to avoid code changes
@@ -41,7 +41,7 @@ Future buildApp(Directory example) async {
   await Process.runCmd('pub ${options.pubGetOrUpgrade} --no-precompile',
       workingDirectory: example.path, isException: isException);
 
-  await _generateBuildYaml(example.path);
+  // await _generateBuildYaml(example.path);
   final pubBuild = options.useNewBuild
       ? 'pub run build_runner build --delete-conflicting-outputs --output=${options.buildDir}'
       : 'pub ${options.buildDir}';
@@ -51,39 +51,46 @@ Future buildApp(Directory example) async {
   // Workaround to https://github.com/dart-lang/build/issues/890
   final webPackagesDir =
       new Directory(p.join(example.path, options.buildDir, 'web/packages'));
-  if (options.useNewBuild &&
-      await FileSystemEntity.isLink(webPackagesDir.path)) {
+  if (!options.useNewBuild) {
+    // Not using the new build system, there is nothing more to do
+  } else if (!webPackagesDir.existsSync()) {
+    _logger.warning('expected ${webPackagesDir} to be a directory '
+        'or a link to a directory but instead it is '
+        '${webPackagesDir.statSync().type}');
+  } else if (!await FileSystemEntity.isLink(webPackagesDir.path)) {
+    // Already a directory, there is nothing more to do.
+    _logger.info('  Non-link directory exists: ${webPackagesDir.path}');
+  } else {
+    // It is a link. Erase the link and copy over the real packages dir.
     await Process.runCmd('rm -f ${webPackagesDir.path}',
         workingDirectory: example.path, isException: isException);
     await Process.runCmd(
         'cp -a ${options.buildDir}/packages ${webPackagesDir.path}',
         workingDirectory: example.path,
         isException: isException);
-  } else {
-    _logger.warning('WARNING: ${webPackagesDir} was expected to be a link'
-        ' but was not. It was ${webPackagesDir.statSync().type}');
   }
 }
 
-Future _generateBuildYaml(String projectPath) async {
-  final pubspecYamlFile = new File(p.join(projectPath, 'pubspec.yaml'));
-  final pubspecYaml = loadYaml(await pubspecYamlFile.readAsString());
-  final buildYaml = _buildYaml(pubspecYaml['name']);
-  final buildYamlFile = new File(p.join(projectPath, 'build.yaml'));
-  _logger.info('Generating ${buildYamlFile.path}:\n$buildYaml');
-  await buildYamlFile.writeAsString(buildYaml);
-}
+//Future _generateBuildYaml(String projectPath) async {
+//  final pubspecYamlFile = new File(p.join(projectPath, 'pubspec.yaml'));
+//  final pubspecYaml = loadYaml(await pubspecYamlFile.readAsString());
+//  final buildYaml = _buildYaml(pubspecYaml['name']);
+//  final buildYamlFile = new File(p.join(projectPath, 'build.yaml'));
+//  _logger.info('Generating ${buildYamlFile.path}:\n$buildYaml');
+//  await buildYamlFile.writeAsString(buildYaml);
+//}
 
-String _buildYaml(String pkgName) => '''targets:
-  ${pkgName}:
-    builders:
-      angular:
-        options:
-          use_new_template_parser: true
-      build_web_compilers|entrypoint:
-        options:
-          compiler: ${options.webCompiler}
-  ''';
+//String _buildYaml(String pkgName) => '''targets:
+//  ${pkgName}:
+//    builders:
+//      angular:
+//        options:
+//          use_new_template_parser: true
+//      build_web_compilers|entrypoint:
+//        options:
+//          compiler: ${options.webCompiler}
+//          ${options.webCompiler == 'dart2js' ? 'dart2js_args: [--checked]' : ''}
+//  ''';
 
 // Until we can specify the needed web-compiler on the command line
 // (https://github.com/dart-lang/build/issues/801), we'll auto-

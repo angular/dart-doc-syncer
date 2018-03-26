@@ -1,6 +1,7 @@
 ## 0.3.0
 
-- Switch to using new template compiler for Angular 5+.
+- Ensure that links in the example repo README.md files point to
+  the appropriate branch and development server.
 - Add `--skip <regex>` option, to filter out projects
   permitted by `--match <regex>`.
 
