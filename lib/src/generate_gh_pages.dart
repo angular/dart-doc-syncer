@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-// import 'package:yaml/yaml.dart';
+import 'package:yaml/yaml.dart';
 
 import 'options.dart';
 import 'runner.dart' as Process; // TODO(chalin) tmp name to avoid code changes
@@ -41,7 +41,7 @@ Future buildApp(Directory example) async {
   await Process.runCmd('pub ${options.pubGetOrUpgrade} --no-precompile',
       workingDirectory: example.path, isException: isException);
 
-  // await _generateBuildYaml(example.path);
+  await _generateBuildYaml(example.path);
   final pubBuild = options.useNewBuild
       ? 'pub run build_runner build --delete-conflicting-outputs --output=${options.buildDir}'
       : 'pub ${options.buildDir}';
@@ -71,30 +71,50 @@ Future buildApp(Directory example) async {
   }
 }
 
-//Future _generateBuildYaml(String projectPath) async {
-//  final pubspecYamlFile = new File(p.join(projectPath, 'pubspec.yaml'));
-//  final pubspecYaml = loadYaml(await pubspecYamlFile.readAsString());
-//  final buildYaml = _buildYaml(pubspecYaml['name']);
-//  final buildYamlFile = new File(p.join(projectPath, 'build.yaml'));
-//  _logger.info('Generating ${buildYamlFile.path}:\n$buildYaml');
-//  await buildYamlFile.writeAsString(buildYaml);
-//}
+Future _generateBuildYaml(String projectPath) async {
+  final pubspecYamlFile = new File(p.join(projectPath, 'pubspec.yaml'));
+  final pubspecYaml =
+      loadYaml(await pubspecYamlFile.readAsString()) as YamlMap;
+  final buildYaml = _buildYaml(pubspecYaml['name'], options.webCompiler,
+      _extractNgVers(pubspecYaml) ?? 0);
+  final buildYamlFile = new File(p.join(projectPath, 'build.yaml'));
+  _logger.info('Generating ${buildYamlFile.path}:\n$buildYaml');
+  await buildYamlFile.writeAsString(buildYaml);
+}
 
-//String _buildYaml(String pkgName) => '''targets:
-//  ${pkgName}:
-//    builders:
-//      angular:
-//        options:
-//          use_new_template_parser: true
-//      build_web_compilers|entrypoint:
-//        options:
-//          compiler: ${options.webCompiler}
-//          ${options.webCompiler == 'dart2js' ? 'dart2js_args: [--checked]' : ''}
-//  ''';
+// Note: we could use ${pkgName} as the target.
+String _buildYaml(String pkgName, String webCompiler, int majorNgVers) =>
+    '''
+targets:
+  \$default:
+    builders:
+      build_web_compilers|entrypoint:
+        generate_for:
+          - web/main.dart
+        options:
+          compiler: $webCompiler
+          dart2js_args:
+            - --fast-startup
+            - --minify
+            - --trust-type-annotations
+''' +
+    (majorNgVers >= 5
+        ? '''
+            - --enable-asserts
+            # - --preview-dart-2 # This option isn't supported yet
+'''
+        : '');
+
+int _extractNgVers(YamlMap pubspecYaml) {
+  final ngVersConstraint = pubspecYaml['dependencies']['angular'];
+  final match = new RegExp(r'\^?(\d+)\.').firstMatch(ngVersConstraint);
+  if (match == null) return null;
+  return int.parse(match[1], onError: (_) => null);
+}
 
 // Until we can specify the needed web-compiler on the command line
 // (https://github.com/dart-lang/build/issues/801), we'll auto-
-// generate build.yml. Ignore build.yaml.
+// generate build.yml. Ignore the generated build.yaml.
 String _filesToExclude() => '''
 .packages
 .pub/

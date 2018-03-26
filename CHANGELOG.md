@@ -1,5 +1,6 @@
 ## 0.3.0
 
+- Use dart2js options to minify, etc. build apps.
 - Ensure that links in the example repo README.md files point to
   the appropriate branch and development server.
 - Add `--skip <regex>` option, to filter out projects
