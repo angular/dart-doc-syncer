@@ -113,11 +113,10 @@ class GitRepository {
 
     _logger.fine('Committing gh-pages changes for $dirPath.');
     await _git(['add', '.'], workingDirectory: dirPath);
-    final status = await _git(['status', '--short'], workingDirectory: dirPath);
-    final statusLines = status.split('\n')
-      ..removeWhere((statusLine) =>
-          statusLine.isEmpty ||
-          statusLine.startsWith('M') && statusLine.contains(buildInfoFileName));
+    // final status = await _git(['status', '--short'], workingDirectory: dirPath);
+    final statusLines = (await this.statusLines())
+      ..removeWhere(
+          (line) => line.startsWith('M') && line.contains(buildInfoFileName));
     if (statusLines.length == 0) {
       final msg =
           'At most the $buildInfoFileName file has changed: nothing to commit';
@@ -125,6 +124,17 @@ class GitRepository {
       throw msg;
     }
     await _git(['commit', '-m', message], workingDirectory: dirPath);
+  }
+
+  /// Output from `git status --short`
+  Future<List<String>> statusLines({removePattern: Pattern}) async {
+    final status = await _git(['status', '--short'], workingDirectory: dirPath);
+    final statusLines = status.split('\n')
+      // I don't think the output can contain empty lines, but just in case:
+      ..removeWhere((statusLine) => statusLine.isEmpty);
+    if (removePattern != null)
+      statusLines.removeWhere((line) => line.contains(removePattern));
+    return statusLines;
   }
 
   /// Fetch and checkout gh-pages. If it does not exist then create it as a

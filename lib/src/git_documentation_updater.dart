@@ -103,11 +103,16 @@ class GitDocumentationUpdater implements DocumentationUpdater {
             outRepo.branch);
       }
 
-      if (updated || options.forceBuild) {
-        print(updated
-            ? '  Changes to sources detected'
-            : '  Force build requested');
+      final onlyReadMeChanged = updated &&
+          (await outRepo.statusLines(removePattern: ' M $readmeMd')).isEmpty;
+      var msg = options.forceBuild
+          ? 'Force build requested'
+          : updated
+              ? "Changes to sources detected${onlyReadMeChanged ? ', but only in $readmeMd file' : ''}"
+              : null;
+      if (msg != null) print('  $msg');
 
+      if (options.forceBuild || updated && !onlyReadMeChanged) {
         if (commitMessage == null)
           commitMessage =
               await _createCommitMessage(angularRepository, rrrExamplePath);
