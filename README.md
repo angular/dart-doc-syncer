@@ -57,6 +57,10 @@ Usage: dart_doc_syncer [options] [<exampleName> | <examplePath> <exampleRepo>]
     --skip                <dart-regexp>
                           Negative filter applied to the project list created by use of the --match option
 
+    --url                 [dev|main]
+                          Webdev site URL to use in generated README.
+                          (defaults to "main")
+
 -u, --user                <user-id>
                           GitHub id of repo to fetch examples from
                           (defaults to "dart-lang")

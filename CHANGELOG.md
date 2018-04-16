@@ -1,3 +1,8 @@
+## 0.4.0
+
+- Add support for `--url [dev|main]` option.
+- Don't rebuild the app if only the generated README.md file changed.
+
 ## 0.3.0
 
 - Use dart2js options to minify, etc. build apps.
