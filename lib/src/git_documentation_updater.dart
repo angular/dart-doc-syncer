@@ -67,7 +67,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     if (exampleName.isEmpty) exampleName = getExampleName(rrrExamplePath);
     print('Processing $rrrExamplePath');
 
-    var updated = false;
+    var updated = false, onlyReadMeChanged = false;
     String commitMessage;
 
     try {
@@ -101,10 +101,12 @@ class GitDocumentationUpdater implements DocumentationUpdater {
             'Example source changed',
             exampleName,
             outRepo.branch);
+
+        onlyReadMeChanged = updated &&
+            (await outRepo.git('diff-tree --no-commit-id --name-only -r HEAD')).trim() ==
+                readmeMd;
       }
 
-      final onlyReadMeChanged = updated &&
-          (await outRepo.statusLines(removePattern: ' M $readmeMd')).isEmpty;
       var msg = options.forceBuild
           ? 'Force build requested'
           : updated
@@ -146,7 +148,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     } catch (e, st) {
       var es = e.toString();
       if (es.contains(_errorOrFatal)) {
-        throw e; // propagate serious errors
+        rethrow;
       } else if (!es.contains('nothing to commit')) {
         print(es);
         _logger.finest(st);
