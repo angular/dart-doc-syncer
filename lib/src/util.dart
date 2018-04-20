@@ -45,3 +45,7 @@ String stripPathPrefix(String prefix, String path) {
       '"$path" should start with "$normalizedPrefix"');
   return path.substring(normalizedPrefix.length);
 }
+
+// Dart 1 polyfill
+// ignore_for_file: deprecated_member_use
+int tryParse(String s) => int.parse(s, onError: (_) => null);

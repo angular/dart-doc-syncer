@@ -1,5 +1,5 @@
-import 'dart:convert';
-
+// import 'dart:convert';
+import 'package:dart2_constant/convert.dart' as convert;
 import 'package:path/path.dart' as p;
 
 import '../example2uri.dart';
@@ -49,7 +49,7 @@ class SyncData {
       name.isEmpty ? getExampleName(path) : name;
 
   factory SyncData.fromJson(String json, {String path}) {
-    final data = JSON.decode(json);
+    final data = convert.json.decode(json);
     return new SyncData(
         name: data['name'] ?? '',
         title: data['title'] ?? '',

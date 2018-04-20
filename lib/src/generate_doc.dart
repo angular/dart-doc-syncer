@@ -11,18 +11,12 @@ import 'runner.dart' as Process; // TODO(chalin) tmp name to avoid code changes
 
 final Logger _logger = new Logger('update_doc_repo');
 
-final String _basePath = p.dirname(Platform.script.path);
-final String _defaultAssetsPath = p.join(_basePath, "../default_assets");
-
 const whitelist = const ['.css', '.dart', '.html', '.yaml'];
 
 /// Generates a clean app folder based on the raw content in [snaphsot].
 Future assembleDocumentationExample(Directory snapshot, Directory out,
     {Directory angularDirectory, String webdevNgPath}) async {
   out.createSync(recursive: false);
-
-  // Add default assets first.
-  await Process.run('cp', ['-a', p.join(_defaultAssetsPath, '.'), out.path]);
 
   // Add all files from snapshot folder.
   await Process.run('cp', ['-a', p.join(snapshot.path, '.'), out.path]);
@@ -39,8 +33,7 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   await Process.run('find',
       [out.path]..addAll('( $targetFiles ) -exec rm -f {} +'.split(' ')));
 
-  final webDir = new Directory(p.join(out.path, 'web'));
-  _addBoilerplateFiles(snapshot.parent, webDir);
+  await _addBoilerplateFiles(snapshot.parent, out);
 
   // Clean the application code
   _logger.fine('Removing doc tags in ${out.path}.');
@@ -54,30 +47,24 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   await Process.run('dartfmt', ['-w', p.absolute(out.path)]);
 }
 
-void _addBoilerplateFiles(Directory exDir, Directory target) {
-  final boilerPlateDir = _findBoilerPlateDir(exDir);
-  if (boilerPlateDir == null) return;
-  for (var fsEntity in boilerPlateDir.listSync(followLinks: false)) {
-    // Our ng/doc boilerplate contains .json files use for e2e testing;
-    // ignore those files.
-    if (p.basename(fsEntity.path).startsWith('.')) continue;
-    if (fsEntity is File && p.extension(fsEntity.path) != '.json') {
-      fsEntity.copySync(p.join(target.path, p.basename(fsEntity.path)));
-      _logger.finer('  Copying boilerplate file ${fsEntity.path}');
-    }
+Future<void> _addBoilerplateFiles(Directory exDir, Directory target) async {
+  for (final boilerPlateDir in _findBoilerPlateDir(exDir)) {
+    await Process.run('cp', ['-a', '${boilerPlateDir.path}/', target.path]);
   }
 }
 
-Directory _findBoilerPlateDir(Directory dir) {
+Iterable<Directory> _findBoilerPlateDir(Directory dir,
+    {bool searchParentDir = true}) sync* {
   final entities = dir.listSync(followLinks: false);
   for (var fsEntity in entities) {
     if (fsEntity is! Directory) continue;
-    if (p.basename(fsEntity.path) == '_boilerplate') return fsEntity;
+    if (p.basename(fsEntity.path) == '_boilerplate') yield fsEntity;
   }
+  if (!searchParentDir) return;
   final parent = dir.parent;
-  return parent == null || p.basename(parent.path) == docExampleDirRoot
-      ? null
-      : _findBoilerPlateDir(parent);
+  if (parent == null) return;
+  yield* _findBoilerPlateDir(parent,
+      searchParentDir: p.basename(parent.path) != docExampleDirRoot);
 }
 
 /// Rewrites all files under the [path] directory by filtering out the
@@ -87,8 +74,9 @@ Future _removeDocTagsFromApplication(String path) async {
 
   final files = await new Directory(path)
       .list(recursive: true, followLinks: false)
-      .where((e) => e is File)
+      .where((e) => e is File && !e.path.contains('/.'))
       .toList();
+  _logger.finer('>> Files to be stripped of doctags: ${files.join('\n  ')}');
   return Future.wait(files.map(_removeDocTagsFromFile));
 }
 
