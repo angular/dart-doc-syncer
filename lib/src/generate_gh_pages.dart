@@ -1,5 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
+// import 'dart:convert';
+import 'package:dart2_constant/convert.dart' as convert;
+
 import 'dart:io';
 
 import 'package:logging/logging.dart';
@@ -109,13 +111,14 @@ int _extractNgVers(YamlMap pubspecYaml) {
   final ngVersConstraint = pubspecYaml['dependencies']['angular'];
   final match = new RegExp(r'\^?(\d+)\.').firstMatch(ngVersConstraint);
   if (match == null) return null;
-  return int.parse(match[1], onError: (_) => null);
+  return int.tryParse(match[1]);
 }
 
 // Until we can specify the needed web-compiler on the command line
 // (https://github.com/dart-lang/build/issues/801), we'll auto-
 // generate build.yml. Ignore the generated build.yaml.
 String _filesToExclude() => '''
+.dart_tool/
 .packages
 .pub/
 ${options.buildDir}/
@@ -153,5 +156,5 @@ Future createBuildInfoFile(
     'commit-sha':
         'https://github.com/angular-examples/$exampleName/commit/$commitHash'
   };
-  buildInfoFile.writeAsStringSync(JSON.encode(json));
+  buildInfoFile.writeAsStringSync(convert.json.encode(json));
 }

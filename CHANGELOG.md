@@ -1,3 +1,8 @@
+## 0.5.0
+
+- Get all boilerplate files from `site-webdev/examples/**/_boilerplate`.
+- Use `dart2_constant` so that this tool runs under Dart 1 and Dart 2.
+
 ## 0.4.0
 
 - Add support for `--url [dev|main]` option.

@@ -1,5 +1,5 @@
 name: dart_doc_syncer
-version: 0.4.0
+version: 0.5.0
 
 description: >
   Updates a documentation repository for an Angular Dart example.
@@ -13,6 +13,7 @@ environment:
 
 dependencies:
   args: ^0.13.0
+  dart2_constant: ^1.0.1
   logging: ^0.11.2
   path: ^1.2.0
   yaml: ^2.1.13
