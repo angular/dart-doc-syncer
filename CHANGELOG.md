@@ -2,6 +2,7 @@
 
 - Multi-example repos (like the ACX lottery) now have boilerplate files
   copied into each individual subproject.
+- Projects are build using the default release config.
 
 ## 0.5.0
 

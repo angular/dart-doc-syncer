@@ -43,9 +43,10 @@ Future buildApp(Directory example) async {
   await Process.runCmd('pub ${options.pubGetOrUpgrade} --no-precompile',
       workingDirectory: example.path, isException: isException);
 
-  await _generateBuildYaml(example.path);
+  // Use default build config for now.
+  // await _generateBuildYaml(example.path);
   final pubBuild = options.useNewBuild
-      ? 'pub run build_runner build --delete-conflicting-outputs --output=${options.buildDir}'
+      ? 'pub run build_runner build --release --delete-conflicting-outputs --output=${options.buildDir}'
       : 'pub ${options.buildDir}';
   await Process.runCmd(pubBuild,
       workingDirectory: example.path, isException: isException);
@@ -73,6 +74,9 @@ Future buildApp(Directory example) async {
   }
 }
 
+// Currently unused, but keeping the code in case we need to generate build
+// config files later on.
+// ignore: unused_element
 Future _generateBuildYaml(String projectPath) async {
   final pubspecYamlFile = new File(p.join(projectPath, 'pubspec.yaml'));
   final pubspecYaml =
