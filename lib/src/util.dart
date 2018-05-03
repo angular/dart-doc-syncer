@@ -49,3 +49,29 @@ String stripPathPrefix(String prefix, String path) {
 // Dart 1 polyfill
 // ignore_for_file: deprecated_member_use
 int tryParse(String s) => int.parse(s, onError: (_) => null);
+
+/// Return list of directories containing pubspec files. If [dir] contains
+/// a pubspec, return `[dir]`, otherwise look one level down in the
+/// subdirectories of [dir], for pubspecs.
+List<Directory> getAppRoots(Directory dir) {
+  final List<Directory> appRoots = [];
+  if (_containsPubspec(dir)) {
+    appRoots.add(dir);
+  } else {
+    for (var fsEntity in dir.listSync(followLinks: false)) {
+      if (p.basename(fsEntity.path).startsWith('.') ||
+          options.containsBuildDir(fsEntity.path)) continue;
+      if (fsEntity is Directory) {
+        if (!_containsPubspec(fsEntity)) continue;
+        _logger.finer('  >> pubspec found under ${fsEntity.path}');
+        appRoots.add(fsEntity);
+      }
+    }
+  }
+  if (appRoots.length == 0)
+    throw new Exception('No pubspec.yaml found under ${dir.path}');
+  return appRoots;
+}
+
+bool _containsPubspec(Directory dir) =>
+    new File(p.join(dir.path, 'pubspec.yaml')).existsSync();

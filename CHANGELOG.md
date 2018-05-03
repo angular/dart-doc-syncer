@@ -1,3 +1,8 @@
+## 0.5.1
+
+- Multi-example repos (like the ACX lottery) now have boilerplate files
+  copied into each individual subproject.
+
 ## 0.5.0
 
 - Get all boilerplate files from `site-webdev/examples/**/_boilerplate`.

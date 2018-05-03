@@ -8,19 +8,31 @@ import 'generate_readme.dart';
 import 'options.dart';
 import 'remove_doc_tags.dart';
 import 'runner.dart' as Process; // TODO(chalin) tmp name to avoid code changes
+import 'util.dart';
 
 final Logger _logger = new Logger('update_doc_repo');
 
 const whitelist = const ['.css', '.dart', '.html', '.yaml'];
 
-/// Generates a clean app folder based on the raw content in [snaphsot].
-Future assembleDocumentationExample(Directory snapshot, Directory out,
-    {Directory angularDirectory, String webdevNgPath}) async {
+/// Clears the [out] example repo root and creates fresh content from [webdev].
+Future refreshExampleRepo(Directory webdev, Directory out,
+    {final /*out*/ List<Directory> appRoots, String webdevNgPath}) async {
   out.createSync(recursive: false);
 
-  // Add all files from snapshot folder.
-  await Process.run('cp', ['-a', p.join(snapshot.path, '.'), out.path]);
+  // Add all files from webdev folder.
+  await Process.run('cp', ['-a', p.join(webdev.path, '.'), out.path]);
 
+  assert(appRoots.isEmpty);
+  appRoots.addAll(getAppRoots(out));
+
+  for (var appRoot in appRoots) {
+    await _refreshExample(webdev, appRoot, webdevNgPath: webdevNgPath);
+  }
+  await generateReadme(out.path, webdevNgPath: webdevNgPath);
+}
+
+Future _refreshExample(Directory snapshot, Directory out,
+    {String webdevNgPath}) async {
   // Remove unimportant files that would distract the user.
   await Process.run('rm', [
     '-f',
@@ -38,9 +50,6 @@ Future assembleDocumentationExample(Directory snapshot, Directory out,
   // Clean the application code
   _logger.fine('Removing doc tags in ${out.path}.');
   await _removeDocTagsFromApplication(out.path);
-
-  // Generate a README file
-  await generateReadme(out.path, webdevNgPath: webdevNgPath);
 
   // Format the Dart code
   _logger.fine('Running dartfmt in ${out.path}.');
