@@ -27,16 +27,15 @@ class GitDocumentationUpdater implements DocumentationUpdater {
       {bool push, bool clean}) async {
     int updateCount = 0;
     try {
-      final angularRepository = await _cloneWebdevRepoIntoWorkDir();
-      final files = await new Directory(angularRepository.dirPath)
+      await _cloneWebdevRepoIntoWorkDir();
+      final files = await new Directory(webdevRepo.dirPath)
           .list(recursive: true)
           .where(
               (e) => e is File && p.basename(e.path) == exampleConfigFileName)
           .toList();
       files.sort((e1, e2) => e1.path.compareTo(e2.path));
       for (var e in files) {
-        var dartDir =
-            p.dirname(e.path).substring(angularRepository.dirPath.length);
+        var dartDir = p.dirname(e.path).substring(webdevRepo.dirPath.length);
         if (dartDir.startsWith('/')) dartDir = dartDir.substring(1);
         final e2u = new Example2Uri(dartDir);
         if (match.hasMatch(dartDir) &&
@@ -69,9 +68,10 @@ class GitDocumentationUpdater implements DocumentationUpdater {
 
     var updated = false, onlyReadMeChanged = false;
     String commitMessage;
+    final List<Directory> appRoots = [];
 
     try {
-      var angularRepository = await _cloneWebdevRepoIntoWorkDir();
+      await _cloneWebdevRepoIntoWorkDir();
 
       // Clone [outRepository] into working directory.
       final outPath = p.join(workDir.path, exampleName);
@@ -80,21 +80,21 @@ class GitDocumentationUpdater implements DocumentationUpdater {
         _logger.fine(
             '  > repo exists; assuming source files have already been updated ($outPath)');
         outRepo.checkout();
+        appRoots.addAll(getAppRoots(outRepo.dir));
       } else {
         await outRepo.cloneFrom(outRepositoryUri);
 
         // Remove existing content as we will generate an updated version.
         await outRepo.delete();
 
-        _logger.fine('Generating updated example app(s) into $outPath.');
-        final exampleFolder = p.join(angularRepository.dirPath, rrrExamplePath);
-        await assembleDocumentationExample(
+        _logger.fine(
+            'Generating ${appRoots.length} updated example app(s) into $outPath.');
+        final exampleFolder = p.join(webdevRepo.dirPath, rrrExamplePath);
+        await refreshExampleRepo(
             new Directory(exampleFolder), new Directory(outRepo.dirPath),
-            angularDirectory: new Directory(angularRepository.dirPath),
-            webdevNgPath: rrrExamplePath);
+            appRoots: appRoots, webdevNgPath: rrrExamplePath);
 
-        commitMessage =
-            await _createCommitMessage(angularRepository, rrrExamplePath);
+        commitMessage = await _createCommitMessage(webdevRepo, rrrExamplePath);
 
         updated = await __handleUpdate(
             () => _update(outRepo, commitMessage, push),
@@ -103,7 +103,8 @@ class GitDocumentationUpdater implements DocumentationUpdater {
             outRepo.branch);
 
         onlyReadMeChanged = updated &&
-            (await outRepo.git('diff-tree --no-commit-id --name-only -r HEAD')).trim() ==
+            (await outRepo.git('diff-tree --no-commit-id --name-only -r HEAD'))
+                    .trim() ==
                 readmeMd;
       }
 
@@ -117,10 +118,11 @@ class GitDocumentationUpdater implements DocumentationUpdater {
       if (options.forceBuild || updated && !onlyReadMeChanged) {
         if (commitMessage == null)
           commitMessage =
-              await _createCommitMessage(angularRepository, rrrExamplePath);
+              await _createCommitMessage(webdevRepo, rrrExamplePath);
 
         updated = await __handleUpdate(
-                () => _updateGhPages(outRepo, exampleName, commitMessage, push),
+                () => _updateGhPages(
+                    outRepo, exampleName, appRoots, commitMessage, push),
                 'App files have changed',
                 exampleName,
                 'gh-pages') ||
@@ -169,13 +171,11 @@ class GitDocumentationUpdater implements DocumentationUpdater {
   }
 
   /// Clone webdev repo into working directory, if it is not already present.
-  Future<GitRepository> _cloneWebdevRepoIntoWorkDir() async {
-    if (webdevRepo == null) {
-      final webdevRepoPath = p.join(workDir.path, 'site_webdev_ng');
-      webdevRepo = _gitFactory.create(webdevRepoPath, options.branch);
-      await webdevRepo.cloneFrom(_webdevRepoUri);
-    }
-    return webdevRepo;
+  Future<void> _cloneWebdevRepoIntoWorkDir() async {
+    if (webdevRepo != null) return;
+    final webdevRepoPath = p.join(workDir.path, 'site_webdev_ng');
+    webdevRepo = _gitFactory.create(webdevRepoPath, options.branch);
+    await webdevRepo.cloneFrom(_webdevRepoUri);
   }
 
   /// Generates a commit message containing the commit hash of the Angular docs
@@ -202,12 +202,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
 
   /// Updates the gh-pages branch with the latest built app(s).
   Future _updateGhPages(GitRepository exampleRepo, String exampleName,
-      String commitMessage, bool push) async {
-    final Iterable<Directory> appRoots = _getAppRoots(exampleRepo.dir);
-
-    if (appRoots.length == 0)
-      throw new Exception('No pubspecs found under ${exampleRepo.dirPath}');
-
+      List<Directory> appRoots, String commitMessage, bool push) async {
     final relativeAppRoots =
         appRoots.map((d) => stripPathPrefix(exampleRepo.dirPath, d.path));
     excludeTmpBuildFiles(exampleRepo.dir, relativeAppRoots);
@@ -240,28 +235,4 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     await adjustBaseHref(pathToBuildWeb, href);
     await createBuildInfoFile(pathToBuildWeb, exampleName, commitHash);
   }
-
-  /// Return list of directories containing pubspec files. If [dir] contains
-  /// a pubspec, return `[dir]`, otherwise look one level down in the
-  /// subdirectories of [dir], for pubspecs.
-  List<Directory> _getAppRoots(Directory dir) {
-    final List<Directory> appRoots = [];
-    if (_containsPubspec(dir)) {
-      appRoots.add(dir);
-    } else {
-      for (var fsEntity in dir.listSync(followLinks: false)) {
-        if (p.basename(fsEntity.path).startsWith('.') ||
-            options.containsBuildDir(fsEntity.path)) continue;
-        if (fsEntity is Directory) {
-          if (!_containsPubspec(fsEntity)) continue;
-          _logger.finer('  >> pubspec found under ${fsEntity.path}');
-          appRoots.add(fsEntity);
-        }
-      }
-    }
-    return appRoots;
-  }
-
-  bool _containsPubspec(Directory dir) =>
-      new File(p.join(dir.path, 'pubspec.yaml')).existsSync();
 }
