@@ -1,3 +1,8 @@
+## 0.5.2
+
+- Build using the `--build web:build` option and remove the workaround to
+  [dart-lang/build/issues/890](https://github.com/dart-lang/build/issues/890).
+
 ## 0.5.1
 
 - Multi-example repos (like the ACX lottery) now have boilerplate files
