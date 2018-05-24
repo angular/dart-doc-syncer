@@ -1,5 +1,7 @@
 ## 0.5.2
 
+- Recommend use of `webdev` rather than `build_runner` in
+  generated project `README.md` files.
 - Build using the `--build web:build` option and remove the workaround to
   [dart-lang/build/issues/890](https://github.com/dart-lang/build/issues/890).
 

@@ -62,10 +62,21 @@ sample. Or run your own copy:
 
 1. Create a local copy of this repo (use the "Clone or download" button above).
 2. Get the dependencies: `pub get`
-3. Launch a development server: `pub ${options.useNewBuild ? 'run build_runner serve' : 'serve'}`
-4. In a browser, open [http://localhost:8080](http://localhost:8080)
 ''';
-  if (!options.useNewBuild) readmeContent += '''
+
+  var step = 3;
+  if (options.useNewBuild)
+    readmeContent += '''
+${step++}. Get the webdev tool: `pub global activate webdev`
+''';
+
+  readmeContent += '''
+${step++}. Launch a development server: `${options.useNewBuild ? 'webdev' : 'pub'} serve`
+${step++}. In a browser, open [http://localhost:8080](http://localhost:8080)
+''';
+
+  if (!options.useNewBuild)
+    readmeContent += '''
 
 In Dartium, you'll see the app right away. In other modern browsers,
 you'll have to wait a bit while pub converts the app.
