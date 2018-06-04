@@ -231,7 +231,7 @@ class GitDocumentationUpdater implements DocumentationUpdater {
     if (!dir.path.endsWith(exampleName)) {
       href += p.basename(dir.path) + '/';
     }
-    final pathToBuildWeb = p.join(dir.path, 'build/web');
+    final pathToBuildWeb = pathToBuiltApp(dir.path);
     await adjustBaseHref(pathToBuildWeb, href);
     await createBuildInfoFile(pathToBuildWeb, exampleName, commitHash);
   }

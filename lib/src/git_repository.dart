@@ -93,7 +93,7 @@ class GitRepository {
     // Copy newly built app files
     final baseDest = p.join(dirPath, options.ghPagesAppDir);
     for (var appRoot in appRoots) {
-      final web = p.join(appRoot, 'build', 'web');
+      final web = pathToBuiltApp(appRoot);
       _logger.fine('Copy from $web to $dirPath.');
       final dest = appRoot.isEmpty ? baseDest : p.join(baseDest, appRoot);
       await Process.run('mkdir', ['-p', dest]);

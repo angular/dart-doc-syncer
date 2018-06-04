@@ -75,3 +75,8 @@ List<Directory> getAppRoots(Directory dir) {
 
 bool _containsPubspec(Directory dir) =>
     new File(p.join(dir.path, 'pubspec.yaml')).existsSync();
+
+String pathToBuiltApp(String projectRootPath) =>
+    // We build for deployment only now, so options.buildDir contains the built
+    // app (as opposed to it being under the `web` subfolder of the buildDir).
+    p.join(projectRootPath, options.buildDir);

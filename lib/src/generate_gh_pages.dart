@@ -46,32 +46,10 @@ Future buildApp(Directory example) async {
   // Use default build config for now.
   // await _generateBuildYaml(example.path);
   final pubBuild = options.useNewBuild
-      ? 'pub run build_runner build --release --delete-conflicting-outputs --output=${options.buildDir}'
+      ? 'pub run build_runner build --release --delete-conflicting-outputs --output=web:${options.buildDir}'
       : 'pub ${options.buildDir}';
   await Process.runCmd(pubBuild,
       workingDirectory: example.path, isException: isException);
-
-  // Workaround to https://github.com/dart-lang/build/issues/890
-  final webPackagesDir =
-      new Directory(p.join(example.path, options.buildDir, 'web/packages'));
-  if (!options.useNewBuild) {
-    // Not using the new build system, there is nothing more to do
-  } else if (!webPackagesDir.existsSync()) {
-    _logger.warning('expected ${webPackagesDir} to be a directory '
-        'or a link to a directory but instead it is '
-        '${webPackagesDir.statSync().type}');
-  } else if (!await FileSystemEntity.isLink(webPackagesDir.path)) {
-    // Already a directory, there is nothing more to do.
-    _logger.info('  Non-link directory exists: ${webPackagesDir.path}');
-  } else {
-    // It is a link. Erase the link and copy over the real packages dir.
-    await Process.runCmd('rm -f ${webPackagesDir.path}',
-        workingDirectory: example.path, isException: isException);
-    await Process.runCmd(
-        'cp -a ${options.buildDir}/packages ${webPackagesDir.path}',
-        workingDirectory: example.path,
-        isException: isException);
-  }
 }
 
 // Currently unused, but keeping the code in case we need to generate build
@@ -88,6 +66,7 @@ Future _generateBuildYaml(String projectPath) async {
   await buildYamlFile.writeAsString(buildYaml);
 }
 
+// This is currently unused.
 // Note: we could use ${pkgName} as the target.
 String _buildYaml(String pkgName, String webCompiler, int majorNgVers) =>
     '''
