@@ -4,7 +4,7 @@ version: 0.5.1
 description: >
   Updates a documentation repository for an Angular Dart example.
 
-author:
+authors:
   - Thibault Sottiaux <thso@google.com>
   - Patrice Chalin <chalin@dsrg.org>
 
