@@ -1,6 +1,5 @@
 import 'dart:async';
-// import 'dart:convert';
-import 'package:dart2_constant/convert.dart' as convert;
+import 'dart:convert';
 
 import 'dart:io';
 
@@ -139,5 +138,5 @@ Future createBuildInfoFile(
     'commit-sha':
         'https://github.com/angular-examples/$exampleName/commit/$commitHash'
   };
-  buildInfoFile.writeAsStringSync(convert.json.encode(json));
+  buildInfoFile.writeAsStringSync(jsonEncode(json));
 }

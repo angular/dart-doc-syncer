@@ -1,3 +1,7 @@
+## 1.0.0
+
+- First Dart-2-only release.
+
 ## 0.5.2, 0.5.2+1
 
 - Last Dart 1 compatible version.
