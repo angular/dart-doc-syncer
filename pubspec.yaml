@@ -1,5 +1,5 @@
 name: dart_doc_syncer
-version: 0.5.2
+version: 0.5.2+1
 
 description: >
   Updates a documentation repository for an Angular Dart example.
@@ -9,7 +9,7 @@ authors:
   - Patrice Chalin <chalin@dsrg.org>
 
 environment:
-  sdk: '>=1.20.1 <2.0.0'
+  sdk: '>=1.20.1 <2.0.0-dev.64.1'
 
 dependencies:
   args: ^0.13.0

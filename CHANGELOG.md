@@ -1,5 +1,6 @@
-## 0.5.2
+## 0.5.2, 0.5.2+1
 
+- Last Dart 1 compatible version.
 - Recommend use of `webdev` rather than `build_runner` in
   generated project `README.md` files.
 - Build using the `--build web:build` option and remove the workaround to
