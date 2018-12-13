@@ -1,5 +1,6 @@
 name: dart_doc_syncer
 version: 1.0.1
+publish_to: none
 
 description: >
   Updates a documentation repository for an Angular Dart example.
