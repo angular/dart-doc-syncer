@@ -1,5 +1,5 @@
 name: dart_doc_syncer
-version: 1.0.1
+version: 1.0.2
 publish_to: none
 
 description: >
@@ -11,6 +11,10 @@ authors:
 
 environment:
   sdk: '>=2.0.0-dev.68.0 <3.0.0'
+
+# Add bin/dart_doc_syncer.dart to the scripts that pub installs.
+executables:
+  dart_doc_syncer:
 
 dependencies:
   args: ^1.4.0
