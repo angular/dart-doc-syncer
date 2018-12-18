@@ -5,6 +5,8 @@ A utility for syncing Dart examples for the AngularDart docs (https://webdev.dar
 Example sources are read from the [dart-lang/site-webdev repo](https://github.com/dart-lang/site-webdev) and written
 to individual repos under [angular-examples](https://github.com/angular-examples).
 
+See also: https://github.com/dart-lang/site-webdev/wiki/Updating-Angular-docs
+
 ## Syncing a single example
 
 Use the example name as an argument. For example:
